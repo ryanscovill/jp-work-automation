@@ -1,0 +1,5 @@
+fillpdf
+python-docx
+PyPDF2
+gooey
+pyinstaller
