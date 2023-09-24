@@ -107,16 +107,51 @@ def split_text_into_pages(text, max_chars_per_page, max_pages):
 
     return pages
 
-@Gooey(program_name="Work Procedure PDF Generator")
+
+def print_javascript_procedure_select(work_procedure_folder):
+    docx_files = []
+    
+    # Walk through root_folder, including all its subdirectories
+    for dirpath, dirnames, filenames in os.walk(work_procedure_folder):
+        for filename in filenames:
+            # Check if the file is a .docx file
+            if filename.endswith('.docx'):
+                
+                # Add the full path to the docx_files list without the .docx extension
+                docx_files.append(os.path.splitext(filename)[0])
+                
+    print(f'''var dropdown = this.getField("{work_procedure_select_field}");
+var newOptions = {str(docx_files)};
+dropdown.clearItems();
+for (var i = 0; i < newOptions.length; i++) {{
+    dropdown.insertItemAt(newOptions[i], newOptions[i], i);
+}}''')
+
+
+@Gooey(program_name="Work Procedure PDF Generator", tabbed_groups=True, navigation='Tabbed', default_size=(800, 600))
 def main():
     parser = GooeyParser(description='Automate creating a work procedure PDF')
-    parser.add_argument('source_pdf', widget="FileChooser", gooey_options={'wildcard': "PDF files (*.pdf)|*.pdf", 'full_width': True}, help='The source PDF')
-    parser.add_argument("template_folder", widget="DirChooser", help="The folder containing the template PDFs", default=default_template_folder, gooey_options={'default_path': default_template_folder, 'full_width': True})
-    parser.add_argument("work_procedure_folder", widget="DirChooser", default=default_work_procedure_folder, gooey_options={'default_path': default_work_procedure_folder, 'full_width': True}, help="The folder containing the work procedure documents")
+
+    subparsers = parser.add_subparsers(help='Choose an action', dest='action')
+
+    generator_group = subparsers.add_parser("Generate_PDF", prog="Generate PDF", help="Generate a PDF from a template")
+    generator_group.add_argument('--source_pdf', metavar="Source PDF", widget="FileChooser", gooey_options={'wildcard': "PDF files (*.pdf)|*.pdf", 'full_width': True}, help='The source PDF')
+    generator_group.add_argument("--template_folder", metavar="Template Folder", widget="DirChooser", help="The folder containing the template PDFs", default=default_template_folder, gooey_options={'default_path': default_template_folder, 'full_width': True})
+    generator_group.add_argument("--work_procedure_folder", metavar="Work Procedure Folder", widget="DirChooser", default=default_work_procedure_folder, gooey_options={'default_path': default_work_procedure_folder, 'full_width': True}, help="The folder containing the work procedure documents")
+    
+    procedure_group = subparsers.add_parser("Procedure_List", prog="Procedure List", help="Generate a javascript file to update the work procedure list dropdown")
+    procedure_group.add_argument("--work_procedure_folder", metavar="Work Procedure Folder", widget="DirChooser", default=default_work_procedure_folder, gooey_options={'default_path': default_work_procedure_folder, 'full_width': True}, help="The folder containing the work procedure documents")
+
     args = parser.parse_args()
-    source_pdf = args.source_pdf
-    template_folder = args.template_folder
-    work_procedure_folder = args.work_procedure_folder
+
+    if args.action == "Generate_PDF":
+        source_pdf = args.source_pdf
+        template_folder = args.template_folder
+        work_procedure_folder = args.work_procedure_folder
+    elif args.action == "Procedure_List":
+        work_procedure_folder = args.work_procedure_folder
+        print_javascript_procedure_select(work_procedure_folder)
+        return
 
     # Extract the data from the source pdf
     extracted_data = extract_fillable_data(source_pdf)
