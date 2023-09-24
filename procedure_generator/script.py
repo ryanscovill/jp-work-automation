@@ -7,10 +7,10 @@ import argparse
 from gooey import Gooey, GooeyParser
 
 # The default folder for the template PDFs
-default_template_folder = "D:\OneDrive\Documents\jp\pdf_filler\examples\Templates"
+default_template_folder = "D:\OneDrive\Documents\jp"
 
 # The default folder for the work procedure documents
-default_work_procedure_folder = "D:\OneDrive\Documents\jp\pdf_filler\examples\Procedure Documents"
+default_work_procedure_folder = "D:\OneDrive\Documents\jp"
 
 # The select field name to get the templates
 template_select_field = "TEMPLATE_SELECT"
