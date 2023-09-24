@@ -18,6 +18,9 @@ template_select_field = "TEMPLATE_SELECT"
 # The select field name to get the work procedure
 work_procedure_select_field = "WORK_PROCEDURE_SELECT"
 
+# The hidden select field name that stores all the work procedures
+work_procedure_select_all_field = "WORK_PROCEDURE_SELECT_ALL"
+
 # The text field to input the work procedure text
 # In the template PDF, name the text field "WORK_PROCEDURE_1", "WORK_PROCEDURE_2", etc for each cooresponding page
 work_procedure_text_field = "WORK_PROCEDURE_X"
@@ -120,7 +123,7 @@ def print_javascript_procedure_select(work_procedure_folder):
                 # Add the full path to the docx_files list without the .docx extension
                 docx_files.append(os.path.splitext(filename)[0])
                 
-    print(f'''var dropdown = this.getField("{work_procedure_select_field}");
+    print(f'''var dropdown = this.getField("{work_procedure_select_all_field}");
 var newOptions = {str(docx_files)};
 dropdown.clearItems();
 for (var i = 0; i < newOptions.length; i++) {{
