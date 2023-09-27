@@ -22,10 +22,11 @@ work_procedure_select_field = "WORK_PROCEDURE_SELECT"
 work_procedure_select_all_field = "WORK_PROCEDURE_SELECT_ALL"
 
 # The text field to input the work procedure text
-# In the template PDF, name the text field "WORK_PROCEDURE_1", "WORK_PROCEDURE_2", etc for each cooresponding page
-work_procedure_text_field = "WORK_PROCEDURE_X"
+# In the template PDF, name the text field "SWP", "SWP2", "SWP3" etc for each cooresponding page
+# X is replaced by a number, except for the first page, which has no number
+work_procedure_text_field = "SWPX"
 # The number of pages for the work procedure
-num_work_procedure_pages = 4
+num_work_procedure_pages = 3
 
 # Extracts the data from a pdf into a dictionary
 def extract_fillable_data(pdf_path) -> dict:
@@ -169,7 +170,11 @@ def main():
 
     # Add the work procedure text to the extracted data
     for n in range(num_work_procedure_pages):
-        text_field_name = work_procedure_text_field.replace("X", str(n + 1))
+        index = n + 1
+        if index == 1:
+            text_field_name = work_procedure_text_field.replace("X", "")
+        else:
+            text_field_name = work_procedure_text_field.replace("X", str(index))
         extracted_data[text_field_name] = work_procedure_texts[n]
 
     # Print the data in a nice way
