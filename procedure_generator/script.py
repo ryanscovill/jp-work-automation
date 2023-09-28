@@ -142,7 +142,17 @@ def setDebug(args):
     args.work_procedure_folder = "D:\OneDrive\Documents\jp\work_automation\procedure_generator\examples\examples_new\Procedure Documents"
     return args
 
-@Gooey(program_name="Work Procedure PDF Generator", tabbed_groups=True, navigation='Tabbed', default_size=(800, 600))
+@Gooey(program_name="Work Procedure PDF Generator", tabbed_groups=True, navigation='Tabbed', default_size=(800, 600),
+       menu=[{'name': 'About', 'items': [{
+    'type': 'AboutDialog',
+    'menuTitle': 'About',
+    'name': 'Work Procedure PDF Generator',
+    'description': 'Automate creating a work procedure PDF',
+    'version': '1.2.1',
+    'copyright': '2023',
+    'website': 'https://github.com/ryanscovill',
+    'license': 'MIT'
+}]}])
 def main():
     parser = GooeyParser(description='Automate creating a work procedure PDF')
 
