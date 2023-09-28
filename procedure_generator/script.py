@@ -156,7 +156,7 @@ def setDebug(args):
     'menuTitle': 'About',
     'name': 'Work Procedure PDF Generator',
     'description': 'Automate creating a work procedure PDF',
-    'version': '1.2.1',
+    'version': '1.3.0',
     'copyright': '2023',
     'website': 'https://github.com/ryanscovill',
     'license': 'MIT'
