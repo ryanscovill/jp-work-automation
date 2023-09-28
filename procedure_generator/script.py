@@ -78,7 +78,7 @@ def get_data_from_word_file(file_name, work_procedure_folder) -> [str]:
     text = "\n".join(result)
 
     # Split the text into pages
-    return split_text_into_pages(text, 1200, num_work_procedure_pages)
+    return split_text_into_pages(text, 4750, num_work_procedure_pages)
 
 # Splits text into pages
 def split_text_into_pages(text, max_chars_per_page, max_pages):
