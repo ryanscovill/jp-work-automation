@@ -122,7 +122,10 @@ def print_javascript_procedure_select(work_procedure_folder):
             if filename.endswith('.docx'):
                 
                 # Add the full path to the docx_files list without the .docx extension
-                docx_files.append(os.path.splitext(filename)[0])
+                try:
+                    docx_files.append(os.path.splitext(filename)[0].encode('ascii').decode('ascii'))
+                except [UnicodeEncodeError, UnicodeDecodeError]:
+                    print(f"Bad file name: {filename}. Please change the filename to use only normal characters.")
                 
     print(f'''var dropdown = this.getField("{work_procedure_select_all_field}");
 var newOptions = {str(docx_files)};
@@ -131,6 +134,13 @@ for (var i = 0; i < newOptions.length; i++) {{
     dropdown.insertItemAt(newOptions[i], newOptions[i], i);
 }}''')
 
+
+def setDebug(args):
+    args.action = "Generate_PDF"
+    args.source_pdf = "D:\OneDrive\Documents\jp\work_automation\procedure_generator\examples\examples_new\WCB and PCF Master - 27-09-2023-2.pdf"
+    args.template_folder = "D:\OneDrive\Documents\jp\work_automation\procedure_generator\examples\examples_new\Templates"
+    args.work_procedure_folder = "D:\OneDrive\Documents\jp\work_automation\procedure_generator\examples\examples_new\Procedure Documents"
+    return args
 
 @Gooey(program_name="Work Procedure PDF Generator", tabbed_groups=True, navigation='Tabbed', default_size=(800, 600))
 def main():
@@ -147,6 +157,9 @@ def main():
     procedure_group.add_argument("--work_procedure_folder", metavar="Work Procedure Folder", widget="DirChooser", default=default_work_procedure_folder, gooey_options={'default_path': default_work_procedure_folder, 'full_width': True}, help="The folder containing the work procedure documents")
 
     args = parser.parse_args()
+
+    # uncomment to debug without GUI
+    # args = setDebug(args)
 
     if args.action == "Generate_PDF":
         source_pdf = args.source_pdf
@@ -179,7 +192,7 @@ def main():
 
     # Print the data in a nice way
     print("\n----------------------- Data -----------------------")
-    print("{" + ",\n".join("{!r}: {!r}".format(k, v) for k, v in extracted_data.items()) + "}")
+    print("{" + ",\n".join("{!r}: {!r}".format(k, v.encode('ascii', 'ignore').decode('ascii') if v is not None else None) for k, v in extracted_data.items()) + "}")
 
     # Create a new pdf from the template and fill it with the combined data
     new_pdf_path = os.path.join(os.path.dirname(source_pdf), f"{os.path.splitext(source_pdf)[0]}_SWP.pdf")
