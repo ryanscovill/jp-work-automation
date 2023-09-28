@@ -112,27 +112,35 @@ def split_text_into_pages(text, max_chars_per_page, max_pages):
     return pages
 
 
-def print_javascript_procedure_select(work_procedure_folder):
-    docx_files = []
+def get_files_from_folder(folder, file_extension):
+    files_list = []
     
-    # Walk through root_folder, including all its subdirectories
-    for dirpath, dirnames, filenames in os.walk(work_procedure_folder):
+    for dirpath, dirnames, filenames in os.walk(folder):
         for filename in filenames:
-            # Check if the file is a .docx file
-            if filename.endswith('.docx'):
-                
-                # Add the full path to the docx_files list without the .docx extension
+            if filename.endswith(file_extension):
                 try:
-                    docx_files.append(os.path.splitext(filename)[0].encode('ascii').decode('ascii'))
-                except [UnicodeEncodeError, UnicodeDecodeError]:
+                    file_name_without_extension = os.path.splitext(filename)[0].encode('ascii').decode('ascii')
+                    files_list.append(file_name_without_extension)
+                except (UnicodeEncodeError, UnicodeDecodeError):
                     print(f"Bad file name: {filename}. Please change the filename to use only normal characters.")
-                
-    print(f'''var dropdown = this.getField("{work_procedure_select_all_field}");
-var newOptions = {str(docx_files)};
-dropdown.clearItems();
-for (var i = 0; i < newOptions.length; i++) {{
-    dropdown.insertItemAt(newOptions[i], newOptions[i], i);
-}}''')
+    
+    return files_list
+
+def print_javascript_select_list(list, field_name):
+    print(f'var dropdown = this.getField("{field_name}");')
+    print('var newOptions = [' + ', '.join('"{}"'.format(item) for item in list) + '];')
+    print("dropdown.clearItems();")
+    print("for (var i = 0; i < newOptions.length; i++) {")
+    print("    dropdown.insertItemAt(newOptions[i], newOptions[i], i);")
+    print("}")
+
+def print_javascript_procedure_select(work_procedure_folder):
+    docx_files = get_files_from_folder(work_procedure_folder, '.docx')
+    print_javascript_select_list(docx_files, work_procedure_select_all_field)   
+
+def print_javascript_template_select(template_folder):
+    pdf_files = get_files_from_folder(template_folder, '.pdf')
+    print_javascript_select_list(pdf_files, template_select_field)
 
 
 def setDebug(args):
@@ -163,6 +171,9 @@ def main():
     generator_group.add_argument("--template_folder", metavar="Template Folder", widget="DirChooser", help="The folder containing the template PDFs", default=default_template_folder, gooey_options={'default_path': default_template_folder, 'full_width': True})
     generator_group.add_argument("--work_procedure_folder", metavar="Work Procedure Folder", widget="DirChooser", default=default_work_procedure_folder, gooey_options={'default_path': default_work_procedure_folder, 'full_width': True}, help="The folder containing the work procedure documents")
     
+    procedure_group = subparsers.add_parser("Template_List", prog="Template List", help="Generate a javascript file to update the work template list dropdown")
+    procedure_group.add_argument("--template_folder", metavar="Template Folder", widget="DirChooser", default=default_template_folder, gooey_options={'default_path': default_template_folder, 'full_width': True}, help="The folder containing the template PDFs")
+
     procedure_group = subparsers.add_parser("Procedure_List", prog="Procedure List", help="Generate a javascript file to update the work procedure list dropdown")
     procedure_group.add_argument("--work_procedure_folder", metavar="Work Procedure Folder", widget="DirChooser", default=default_work_procedure_folder, gooey_options={'default_path': default_work_procedure_folder, 'full_width': True}, help="The folder containing the work procedure documents")
 
@@ -178,6 +189,10 @@ def main():
     elif args.action == "Procedure_List":
         work_procedure_folder = args.work_procedure_folder
         print_javascript_procedure_select(work_procedure_folder)
+        return
+    elif args.action == "Template_List":
+        template_folder = args.template_folder
+        print_javascript_template_select(template_folder)
         return
 
     # Extract the data from the source pdf
