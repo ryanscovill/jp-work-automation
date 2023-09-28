@@ -42,33 +42,35 @@ def get_dropdown_value(file_name, dict, field_name) -> str:
 
 # Returns the path of the file by name
 def get_pdf_file(file_name, template_folder) -> str:
-    file_path = os.path.join(template_folder, f"{file_name}.pdf")
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"No file found with the name {file_path}.")
+    file_name = f"{file_name}.pdf"
+    file_path = get_single_filepath_from_folder(template_folder, file_name)
     return file_path
 
-# Returns the data array from a word file
-def get_data_from_word_file(file_name, work_procedure_folder) -> [str]:
+
+def get_single_filepath_from_folder(base_folder, search_filename):
     matches = []
-    file_name_docx = f"{file_name}.docx"
-    file_path = ""
+    file_path = search_filename
 
     # Walk through all subdirectories of the base folder
-    for dirpath, dirnames, filenames in os.walk(work_procedure_folder):
+    for dirpath, dirnames, filenames in os.walk(base_folder):
         for filename in filenames:
-            if filename == file_name_docx:
+            if filename == search_filename:
                 matches.append(os.path.join(dirpath, filename))
 
     # Check if more than one file with the target name was found
     if len(matches) > 1:
-        raise Exception(f"More than one file named {file_name_docx} was found!")
+        raise Exception(f"More than one file named {search_filename} was found!")
     elif len(matches) == 0:
-        raise Exception(f"No proecdure document file named {file_name_docx} was found!")
+        raise Exception(f"No file named {search_filename} was found!")
     else:
         file_path = matches[0]
 
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"No document procedure file found with the name {file_path}.")
+    return file_path
+
+# Returns the data array from a word file
+def get_data_from_word_file(file_name, work_procedure_folder) -> [str]:
+    file_name_docx = f"{file_name}.docx"
+    file_path = get_single_filepath_from_folder(work_procedure_folder, file_name_docx)
     
     # Get the text from a word document
     doc = docx.Document(file_path)
