@@ -126,7 +126,7 @@ def get_files_from_folder(folder, file_extension):
                     file_name_without_extension = os.path.splitext(filename)[0].encode('ascii').decode('ascii')
                     files_list.append(file_name_without_extension)
                 except (UnicodeEncodeError, UnicodeDecodeError):
-                    print(f"Bad file name: {filename}. Please change the filename to use only normal characters.")
+                    print(f"Bad file name: {filename.encode('ascii', 'ignore').decode('ascii')}. Please change the filename to use only normal characters.")
     
     return files_list
 
