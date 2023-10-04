@@ -2,5 +2,4 @@
 venv
 .vscode
 .env
-dist
 build
