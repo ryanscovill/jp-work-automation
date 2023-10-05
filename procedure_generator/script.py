@@ -4,7 +4,16 @@ from fillpdf import fillpdfs
 import docx
 import os
 import argparse
+import sys
+import codecs
 from gooey import Gooey, GooeyParser
+
+
+# Handle encodings
+if sys.stdout.encoding != 'UTF-8':
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+if sys.stderr.encoding != 'UTF-8':
+    sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
 
 # The default folder for the template PDFs
 default_template_folder = "T:\Safe Work Procedures\SOP-SWP-RA-ECP - templates"
@@ -123,10 +132,10 @@ def get_files_from_folder(folder, file_extension):
         for filename in filenames:
             if filename.endswith(file_extension):
                 try:
-                    file_name_without_extension = os.path.splitext(filename)[0].encode('ascii').decode('ascii')
+                    file_name_without_extension = os.path.splitext(filename)[0].encode('utf-8').decode('utf-8')
                     files_list.append(file_name_without_extension)
                 except (UnicodeEncodeError, UnicodeDecodeError):
-                    print(f"Bad file name: {filename.encode('ascii', 'ignore').decode('ascii')}. Please change the filename to use only normal characters.")
+                    print(f"Bad file name: {filename.encode('utf-8', 'ignore').decode('utf-8')}. Please change the filename to use only normal characters.")
     
     return files_list
 
@@ -148,10 +157,10 @@ def print_javascript_template_select(template_folder):
 
 
 def setDebug(args):
-    args.action = "Generate_PDF"
+    args.action = "Procedure_List"
     args.source_pdf = "D:\OneDrive\Documents\jp\work_automation\procedure_generator\examples\examples_new\WCB and PCF Master - 27-09-2023-2.pdf"
     args.template_folder = "D:\OneDrive\Documents\jp\work_automation\procedure_generator\examples\examples_new\Templates"
-    args.work_procedure_folder = "D:\OneDrive\Documents\jp\work_automation\procedure_generator\examples\examples_new\Procedure Documents"
+    args.work_procedure_folder = "D:\OneDrive\Documents\jp\examples_new\Procedure Documents"
     return args
 
 @Gooey(program_name="Work Procedure PDF Generator", tabbed_groups=True, navigation='Tabbed', default_size=(800, 600),
@@ -160,7 +169,7 @@ def setDebug(args):
     'menuTitle': 'About',
     'name': 'Work Procedure PDF Generator',
     'description': 'Automate creating a work procedure PDF',
-    'version': '1.4.2',
+    'version': '1.4.3',
     'copyright': '2023',
     'website': 'https://github.com/ryanscovill',
     'license': 'MIT'
@@ -221,7 +230,7 @@ def main():
 
     # Print the data in a nice way
     print("\n----------------------- Data -----------------------")
-    print("{" + ",\n".join("{!r}: {!r}".format(k, v.encode('ascii', 'ignore').decode('ascii') if v is not None else None) for k, v in extracted_data.items()) + "}")
+    print("{" + ",\n".join("{!r}: {!r}".format(k, v.encode('utf-8', 'ignore').decode('utf-8') if v is not None else None) for k, v in extracted_data.items()) + "}")
 
     # Create a new pdf from the template and fill it with the combined data
     new_pdf_path = os.path.join(os.path.dirname(source_pdf), f"{os.path.splitext(source_pdf)[0]}_SWP.pdf")
