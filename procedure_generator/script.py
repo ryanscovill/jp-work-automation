@@ -40,7 +40,7 @@ num_work_procedure_pages = 3
 # Extracts the data from a pdf into a dictionary
 def extract_fillable_data(pdf_path) -> dict:
     fields = fillpdfs.get_form_fields(pdf_path)
-    fields = {k: v for k, v in fields.items() if "checkbox" not in k.lower()}
+    fields = {k: v for k, v in fields.items() if "check box" not in k.lower()}
 
     return fields
 
@@ -169,7 +169,7 @@ def setDebug(args):
     'menuTitle': 'About',
     'name': 'Work Procedure PDF Generator',
     'description': 'Automate creating a work procedure PDF',
-    'version': '1.4.3',
+    'version': '1.4.4',
     'copyright': '2023',
     'website': 'https://github.com/ryanscovill',
     'license': 'MIT'
