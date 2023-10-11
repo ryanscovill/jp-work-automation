@@ -220,6 +220,7 @@ def print_javascript_select_list(list, field_name):
 
 def print_javascript_procedure_select(work_procedure_folder):
     docx_files = get_files_from_folder(work_procedure_folder, '.docx')
+    docx_files.append("UNUSED")
     print_javascript_select_list(docx_files, work_procedure_select_all_field)   
 
 def print_javascript_template_select(template_folder):
