@@ -7,6 +7,7 @@ import argparse
 import sys
 import codecs
 from gooey import Gooey, GooeyParser
+import fitz
 
 
 # Handle encodings
@@ -25,17 +26,18 @@ default_work_procedure_folder = "T:\Safe Work Procedures"
 template_select_field = "TEMPLATE_SELECT"
 
 # The select field name to get the work procedure
-work_procedure_select_field = "WORK_PROCEDURE_SELECT"
+# X is replaced by a number from 1 to number of work procedure fields
+work_procedure_select_field = "WORK_PROCEDURE_SELECTX"
 
 # The hidden select field name that stores all the work procedures
 work_procedure_select_all_field = "WORK_PROCEDURE_SELECT_ALL"
 
 # The text field to input the work procedure text
 # In the template PDF, name the text field "SWP", "SWP2", "SWP3" etc for each cooresponding page
+# Additional pages are automatically added as needed
 # X is replaced by a number, except for the first page, which has no number
 work_procedure_text_field = "SWPX"
-# The number of pages for the work procedure
-num_work_procedure_pages = 3
+num_work_procedure_fields = 12
 
 # Extracts the data from a pdf into a dictionary
 def extract_fillable_data(pdf_path) -> dict:
@@ -45,9 +47,9 @@ def extract_fillable_data(pdf_path) -> dict:
     return fields
 
 # Gets the value of a field from the dictionary of fields
-def get_dropdown_value(file_name, dict, field_name) -> str:
+def get_dropdown_value(file_name, dict, field_name, error=True) -> str:
     data = dict.get(field_name, "")
-    if not data:
+    if error and not data:
         raise ValueError(f"No dropdown field found with the name {field_name} in {file_name}")
     return data
 
@@ -91,10 +93,10 @@ def get_data_from_word_file(file_name, work_procedure_folder) -> [str]:
     text = "\n".join(result)
 
     # Split the text into pages
-    return split_text_into_pages(text, 4750, num_work_procedure_pages)
+    return split_text_into_pages(text, 3300)
 
 # Splits text into pages
-def split_text_into_pages(text, max_chars_per_page, max_pages):
+def split_text_into_pages(text, max_chars_per_page):
     lines = text.split('\n')
     pages = []
     current_page = ''
@@ -119,10 +121,79 @@ def split_text_into_pages(text, max_chars_per_page, max_pages):
     if current_page:
         pages.append(current_page.rstrip())
 
-    while len(pages) < max_pages :
-        pages.append('')
-
     return pages
+
+
+def _find_last_annot(doc, starts_with):
+    last_page_index = 0
+    field_name = None
+    for page_index, page in enumerate(doc):
+        for annot in page.widgets():
+            if annot.field_name.startswith(starts_with):
+                last_page_index = page_index
+                field_name = annot.field_name
+    return last_page_index, field_name
+
+
+def find_last_swp_page(doc):
+    page_index, field_name = _find_last_annot(doc, "SWP")
+    last_swp_index = 0
+
+    if field_name is None:
+        return 0, 0
+    
+    if field_name:
+        last_swp_index = int(field_name[3:])
+
+    return page_index, last_swp_index
+
+
+def add_swp_page(doc : fitz.Document, page_index, swp_index):
+    doc.fullcopy_page(page_index - 1, page_index)
+    new_page : fitz.Page = doc[page_index]
+    for annot in new_page.widgets():
+        if annot.field_name.startswith("SWP"):
+            annot.field_name = "SWP" + str(swp_index)
+            annot.update()
+
+
+def add_swp_pages(file, num_required_pages, output_pdf):
+    doc = fitz.open(file)
+    last_swp_page_index, last_swp_index = find_last_swp_page(doc)
+    required_pages = num_required_pages - last_swp_index
+    for i in range(required_pages):
+        add_swp_page(doc, last_swp_page_index + i + 1, last_swp_index + i + 1)
+    doc.save(output_pdf)
+    doc.close()
+
+
+def add_work_procedure_text(extracted_data, work_procedure_texts):
+    for n in range(len(work_procedure_texts)):
+        index = n + 1
+        if index == 1:
+            text_field_name = work_procedure_text_field.replace("X", "")
+        else:
+            text_field_name = work_procedure_text_field.replace("X", str(index))
+        extracted_data[text_field_name] = work_procedure_texts[n]
+
+    return extracted_data
+
+
+def get_safe_work_procedues(source_pdf, extracted_data, work_procedure_folder):
+    work_procedure_texts = []
+    for n in range(1, num_work_procedure_fields + 1):
+        swp_field = work_procedure_select_field.replace("X", str(n))
+        lookup_file_name = get_dropdown_value(source_pdf, extracted_data, swp_field, False)
+
+        # Handle the case for older PDFs that don't number the lookup field
+        if n == 1 and not lookup_file_name:
+            swp_field = work_procedure_select_field.replace("X", "")
+            lookup_file_name = get_dropdown_value(source_pdf, extracted_data, swp_field, True)
+
+        if lookup_file_name and lookup_file_name != "UNUSED":
+            work_procedure_texts = work_procedure_texts + get_data_from_word_file(lookup_file_name, work_procedure_folder)
+
+    return work_procedure_texts
 
 
 def get_files_from_folder(folder, file_extension):
@@ -157,9 +228,9 @@ def print_javascript_template_select(template_folder):
 
 
 def setDebug(args):
-    args.action = "Procedure_List"
-    args.source_pdf = "D:\OneDrive\Documents\jp\work_automation\procedure_generator\examples\examples_new\WCB and PCF Master - 27-09-2023-2.pdf"
-    args.template_folder = "D:\OneDrive\Documents\jp\work_automation\procedure_generator\examples\examples_new\Templates"
+    args.action = "Generate_PDF"
+    args.source_pdf = "D:\OneDrive\Documents\jp\examples_new\WCB and PCF Master -04-10-2023 MAIN2.pdf"
+    args.template_folder = "D:\OneDrive\Documents\jp\examples_new\Templates"
     args.work_procedure_folder = "D:\OneDrive\Documents\jp\examples_new\Procedure Documents"
     return args
 
@@ -169,7 +240,7 @@ def setDebug(args):
     'menuTitle': 'About',
     'name': 'Work Procedure PDF Generator',
     'description': 'Automate creating a work procedure PDF',
-    'version': '1.4.4',
+    'version': '1.5.0',
     'copyright': '2023',
     'website': 'https://github.com/ryanscovill',
     'license': 'MIT'
@@ -216,17 +287,13 @@ def main():
     template_pdf = get_pdf_file(template_file_name, template_folder)
 
     # Get the work procedure text from the lookup word file
-    lookup_file_name = get_dropdown_value(source_pdf, extracted_data, work_procedure_select_field)
-    work_procedure_texts = get_data_from_word_file(lookup_file_name, work_procedure_folder)
+    work_procedure_texts = get_safe_work_procedues(source_pdf, extracted_data, work_procedure_folder)
+    extracted_data = add_work_procedure_text(extracted_data, work_procedure_texts)
 
-    # Add the work procedure text to the extracted data
-    for n in range(num_work_procedure_pages):
-        index = n + 1
-        if index == 1:
-            text_field_name = work_procedure_text_field.replace("X", "")
-        else:
-            text_field_name = work_procedure_text_field.replace("X", str(index))
-        extracted_data[text_field_name] = work_procedure_texts[n]
+    # Create a temporary pdf with the extra SWP pages
+    temp_pdf_path = os.path.join(os.path.dirname(source_pdf), f"{os.path.splitext(source_pdf)[0]}_TEMP_DELETE.pdf")
+
+    add_swp_pages(template_pdf, len(work_procedure_texts), temp_pdf_path)
 
     # Print the data in a nice way
     print("\n----------------------- Data -----------------------")
@@ -236,7 +303,11 @@ def main():
     new_pdf_path = os.path.join(os.path.dirname(source_pdf), f"{os.path.splitext(source_pdf)[0]}_SWP.pdf")
     print(f"Created new pdf: {new_pdf_path}")
 
-    fillpdfs.write_fillable_pdf(template_pdf, new_pdf_path, extracted_data)
+    try:
+        fillpdfs.write_fillable_pdf(temp_pdf_path, new_pdf_path, extracted_data)
+    finally:
+        # delete the temporary pdf
+        os.remove(temp_pdf_path)
 
 if __name__ == "__main__":
     main()
