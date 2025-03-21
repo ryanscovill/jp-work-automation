@@ -1,5 +1,5 @@
 fillpdf
 python-docx
-PyPDF2
+pypdf
 gooey
 pyinstaller

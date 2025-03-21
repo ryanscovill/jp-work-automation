@@ -167,6 +167,32 @@ def add_swp_pages(file, num_required_pages, output_pdf):
     doc.close()
 
 
+def get_select_field_values(doc, field_name):
+    values = []
+    for page in doc:
+        for annot in page.widgets():
+            if annot.field_name == field_name:
+                if hasattr(annot, 'choice_values'):
+                    values = annot.choice_values
+                    break
+    return values
+
+
+def update_select_field(doc, field_name, options):
+    field_updated = False
+    for page in doc:
+        for annot in page.widgets():
+            if annot.field_name == field_name:
+                annot.choice_values = options
+                annot.update()
+                field_updated = True
+                break
+        if field_updated:
+            break
+            
+    if not field_updated:
+        print(f"Warning: No field found with the name {field_name}.")
+
 def add_work_procedure_text(extracted_data, work_procedure_texts):
     for n in range(len(work_procedure_texts)):
         index = n + 1
@@ -210,76 +236,8 @@ def get_files_from_folder(folder, file_extension):
     
     return files_list
 
-def print_javascript_select_list(list, field_name):
-    print(f'var dropdown = this.getField("{field_name}");')
-    print('var newOptions = [' + ', '.join('"{}"'.format(item) for item in list) + '];')
-    print("dropdown.clearItems();")
-    print("for (var i = 0; i < newOptions.length; i++) {")
-    print("    dropdown.insertItemAt(newOptions[i], newOptions[i], i);")
-    print("}")
 
-def print_javascript_procedure_select(work_procedure_folder):
-    docx_files = get_files_from_folder(work_procedure_folder, '.docx')
-    docx_files.append("UNUSED")
-    print_javascript_select_list(docx_files, work_procedure_select_all_field)   
-
-def print_javascript_template_select(template_folder):
-    pdf_files = get_files_from_folder(template_folder, '.pdf')
-    print_javascript_select_list(pdf_files, template_select_field)
-
-
-def setDebug(args):
-    args.action = "Procedure_List"
-    args.source_pdf = r"D:\OneDrive\Documents\jp\examples_new\WCB and PCF Master -04-10-2023 MAIN2.pdf"
-    args.template_folder = r"D:\OneDrive\Documents\jp\examples_new\Templates"
-    args.work_procedure_folder = r"D:\OneDrive\Documents\jp\examples_new\Procedure Documents"
-    return args
-
-@Gooey(program_name="Work Procedure PDF Generator", tabbed_groups=True, navigation='Tabbed', default_size=(800, 600),
-       menu=[{'name': 'About', 'items': [{
-    'type': 'AboutDialog',
-    'menuTitle': 'About',
-    'name': 'Work Procedure PDF Generator',
-    'description': 'Automate creating a work procedure PDF',
-    'version': '1.5.0',
-    'copyright': '2023',
-    'website': 'https://github.com/ryanscovill',
-    'license': 'MIT'
-}]}])
-def main():
-    parser = GooeyParser(description='Automate creating a work procedure PDF')
-
-    subparsers = parser.add_subparsers(help='Choose an action', dest='action')
-
-    generator_group = subparsers.add_parser("Generate_PDF", prog="Generate PDF", help="Generate a PDF from a template")
-    generator_group.add_argument('--source_pdf', metavar="Source PDF", widget="FileChooser", gooey_options={'wildcard': "PDF files (*.pdf)|*.pdf", 'full_width': True}, help='The source PDF')
-    generator_group.add_argument("--template_folder", metavar="Template Folder", widget="DirChooser", help="The folder containing the template PDFs", default=default_template_folder, gooey_options={'default_path': default_template_folder, 'full_width': True})
-    generator_group.add_argument("--work_procedure_folder", metavar="Work Procedure Folder", widget="DirChooser", default=default_work_procedure_folder, gooey_options={'default_path': default_work_procedure_folder, 'full_width': True}, help="The folder containing the work procedure documents")
-    
-    procedure_group = subparsers.add_parser("Template_List", prog="Template List", help="Generate a javascript file to update the work template list dropdown")
-    procedure_group.add_argument("--template_folder", metavar="Template Folder", widget="DirChooser", default=default_template_folder, gooey_options={'default_path': default_template_folder, 'full_width': True}, help="The folder containing the template PDFs")
-
-    procedure_group = subparsers.add_parser("Procedure_List", prog="Procedure List", help="Generate a javascript file to update the work procedure list dropdown")
-    procedure_group.add_argument("--work_procedure_folder", metavar="Work Procedure Folder", widget="DirChooser", default=default_work_procedure_folder, gooey_options={'default_path': default_work_procedure_folder, 'full_width': True}, help="The folder containing the work procedure documents")
-
-    args = parser.parse_args()
-
-    # uncomment to debug without GUI
-    # args = setDebug(args)
-
-    if args.action == "Generate_PDF":
-        source_pdf = args.source_pdf
-        template_folder = args.template_folder
-        work_procedure_folder = args.work_procedure_folder
-    elif args.action == "Procedure_List":
-        work_procedure_folder = args.work_procedure_folder
-        print_javascript_procedure_select(work_procedure_folder)
-        return
-    elif args.action == "Template_List":
-        template_folder = args.template_folder
-        print_javascript_template_select(template_folder)
-        return
-
+def generate_pdf(source_pdf, template_folder, work_procedure_folder):
     # Extract the data from the source pdf
     extracted_data = extract_fillable_data(source_pdf)
 
@@ -310,6 +268,92 @@ def main():
         # delete the temporary pdf
         os.remove(temp_pdf_path)
 
+def update_master(source_pdf, template_folder, work_procedure_folder):
+    doc = fitz.open(source_pdf)
+
+    # Get the existing templates and work procedures
+    existing_templates = get_select_field_values(doc, template_select_field)
+    existing_work_procedures = get_select_field_values(doc, work_procedure_select_all_field)
+
+    # Get the new templates and work procedures
+    templates = get_files_from_folder(template_folder, '.pdf')
+    work_procedures = get_files_from_folder(work_procedure_folder, '.docx')
+    work_procedures.append("UNUSED")
+
+    # Print the differences
+    new_templates = list(set(templates) - set(existing_templates))
+    removed_templates = list(set(existing_templates) - set(templates))
+    new_work_procedures = list(set(work_procedures) - set(existing_work_procedures))
+    removed_work_procedures = list(set(existing_work_procedures) - set(work_procedures))
+
+    print("Templates added:", new_templates)
+    print("Templates removed:", removed_templates)
+    print("Work procedures added:", new_work_procedures)
+    print("Work procedures removed:", removed_work_procedures)
+
+    # Update the template select field
+    update_select_field(doc, template_select_field, templates)
+
+    # Update the work procedure select field
+    update_select_field(doc, work_procedure_select_all_field, work_procedures)
+
+    new_pdf_path = os.path.join(os.path.dirname(source_pdf), f"{os.path.splitext(source_pdf)[0]}_UPDATED.pdf")
+    doc.save(new_pdf_path)
+    doc.close()
+    
+    print(f"Created new pdf: {new_pdf_path}")
+
+def setDebug(args):
+    args.action = "Update_Master"
+    args.source_pdf = r"D:\OneDrive\Documents\jp\examples_new\WCB and PCF Master -04-10-2023 MAIN2 - Copy_UP2.pdf"
+    args.template_folder = r"D:\OneDrive\Documents\jp\examples_new\Templates"
+    args.work_procedure_folder = r"D:\OneDrive\Documents\jp\examples_new\Procedure Documents"
+    return args
+
+
+@Gooey(program_name="Work Procedure PDF Generator", tabbed_groups=True, navigation='Tabbed', default_size=(800, 600),
+       menu=[{'name': 'About', 'items': [{
+    'type': 'AboutDialog',
+    'menuTitle': 'About',
+    'name': 'Work Procedure PDF Generator',
+    'description': 'Automate creating a work procedure PDF',
+    'version': '1.5.0',
+    'copyright': '2023',
+    'website': 'https://github.com/ryanscovill',
+    'license': 'MIT'
+}]}])
+def main():
+    parser = GooeyParser(description='Automate creating a work procedure PDF')
+
+    subparsers = parser.add_subparsers(help='Choose an action', dest='action')
+
+    generator_group = subparsers.add_parser("Generate_PDF", prog="Generate PDF", help="Generate a PDF from a template")
+    generator_group.add_argument('--source_pdf', metavar="Source PDF", widget="FileChooser", gooey_options={'wildcard': "PDF files (*.pdf)|*.pdf", 'full_width': True}, help='The source PDF')
+    generator_group.add_argument("--template_folder", metavar="Template Folder", widget="DirChooser", help="The folder containing the template PDFs", default=default_template_folder, gooey_options={'default_path': default_template_folder, 'full_width': True})
+    generator_group.add_argument("--work_procedure_folder", metavar="Work Procedure Folder", widget="DirChooser", default=default_work_procedure_folder, gooey_options={'default_path': default_work_procedure_folder, 'full_width': True}, help="The folder containing the work procedure documents")
+    
+    procedure_group = subparsers.add_parser("Update_Master", prog="Update Master", help="Updates the Master Document with the list of templates and work procedures")
+    procedure_group.add_argument('--source_pdf', metavar="Master PDF", widget="FileChooser", gooey_options={'wildcard': "PDF files (*.pdf)|*.pdf", 'full_width': True}, help='The master PDF')
+    procedure_group.add_argument("--template_folder", metavar="Template Folder", widget="DirChooser", default=default_template_folder, gooey_options={'default_path': default_template_folder, 'full_width': True}, help="The folder containing the template PDFs")
+    procedure_group.add_argument("--work_procedure_folder", metavar="Work Procedure Folder", widget="DirChooser", default=default_work_procedure_folder, gooey_options={'default_path': default_work_procedure_folder, 'full_width': True}, help="The folder containing the work procedure documents")
+
+    args = parser.parse_args()
+
+    # uncomment to debug without GUI
+    args = setDebug(args)
+
+    if args.action == "Generate_PDF":
+        source_pdf = args.source_pdf
+        template_folder = args.template_folder
+        work_procedure_folder = args.work_procedure_folder
+        generate_pdf(source_pdf, template_folder, work_procedure_folder)
+    elif args.action == "Update_Master":
+        source_pdf = args.source_pdf
+        template_folder = args.template_folder
+        work_procedure_folder = args.work_procedure_folder
+        update_master(source_pdf, template_folder, work_procedure_folder)
+
+
 if __name__ == "__main__":
     main()
-    
+
