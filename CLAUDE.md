@@ -2,7 +2,7 @@
 
 ## Build & Development Commands
 - Setup: `pip install -r requirements.txt`
-- Build executable: `pyinstaller --onefile --windowed script.py`
+- Build executable: `pyinstaller --onefile script.py`
 - Run application: `python script.py`
 
 ## Project Structure
