@@ -17,10 +17,10 @@ if sys.stderr.encoding != 'UTF-8':
     sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
 
 # The default folder for the template PDFs
-default_template_folder = "T:\Safe Work Procedures\SOP-SWP-RA-ECP - templates"
+default_template_folder = r"T:\Safe Work Procedures\SOP-SWP-RA-ECP - templates"
 
 # The default folder for the work procedure documents
-default_work_procedure_folder = "T:\Safe Work Procedures"
+default_work_procedure_folder = r"T:\Safe Work Procedures"
 
 # The select field name to get the templates
 template_select_field = "TEMPLATE_SELECT"
@@ -229,10 +229,10 @@ def print_javascript_template_select(template_folder):
 
 
 def setDebug(args):
-    args.action = "Generate_PDF"
-    args.source_pdf = "D:\OneDrive\Documents\jp\examples_new\WCB and PCF Master -04-10-2023 MAIN2.pdf"
-    args.template_folder = "D:\OneDrive\Documents\jp\examples_new\Templates"
-    args.work_procedure_folder = "D:\OneDrive\Documents\jp\examples_new\Procedure Documents"
+    args.action = "Procedure_List"
+    args.source_pdf = r"D:\OneDrive\Documents\jp\examples_new\WCB and PCF Master -04-10-2023 MAIN2.pdf"
+    args.template_folder = r"D:\OneDrive\Documents\jp\examples_new\Templates"
+    args.work_procedure_folder = r"D:\OneDrive\Documents\jp\examples_new\Procedure Documents"
     return args
 
 @Gooey(program_name="Work Procedure PDF Generator", tabbed_groups=True, navigation='Tabbed', default_size=(800, 600),
