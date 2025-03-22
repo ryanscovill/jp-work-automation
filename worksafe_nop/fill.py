@@ -1,27 +1,21 @@
 import json
 import os
 import time
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
 import argparse
+from playwright.sync_api import sync_playwright, Page, Playwright
 
 def load_json_file(filename):
     """Load JSON data from a file."""
     with open(filename, 'r') as file:
         return json.load(file)
 
-def fill_form(driver, page_name, mappings, data):
+def fill_form(page: Page, page_name: str, mappings, data):
     """Fill form fields based on mappings."""
     # Find the correct page mapping
     page_mapping = None
-    for page in mappings["pages"]:
-        if page_name in page:
-            page_mapping = page[page_name]
+    for p in mappings["pages"]:
+        if page_name in p:
+            page_mapping = p[page_name]
             break
 
     if not page_mapping:
@@ -30,8 +24,8 @@ def fill_form(driver, page_name, mappings, data):
 
     print(f"Filling form for page: {page_name}")
 
-    # Wait for Angular to load (adjust timeout as needed)
-    time.sleep(3)
+    # Wait for Angular to load
+    page.wait_for_load_state("networkidle")
 
     # Fill each field based on the mapping
     for field_id, field_config in page_mapping.items():
@@ -40,119 +34,144 @@ def fill_form(driver, page_name, mappings, data):
 
         if data_key in data:
             value = data[data_key]
-            # Try multiple methods to find and fill the element
-            fill_element(driver, field_id, value, data_key, field_type)
-            time.sleep(0.5)
+            fill_element(page, field_id, value, data_key, field_type)
+            # Small pause between field interactions
+            page.wait_for_timeout(100)
 
-def fill_element(driver, field_id, value, data_key, field_type):
-    """Try multiple strategies to find and fill form elements."""
-    # Special handling for radio buttons with ID values
-    if field_type == "radio" and value.startswith("rd"):
-        try:
-            # If value is a radio button ID (like rdAsbestos), use it directly
-            radio = driver.find_element(By.ID, value)
-            driver.execute_script("arguments[0].click();", radio)
-            print(f"Selected radio button with ID: {value}")
-            return
-        except Exception as e:
-            # Continue with other strategies if direct ID approach fails
-            print(f"Could not select radio directly, trying other methods: {e}")
-
-    # List of strategies to find elements in Angular app
-    strategies = [
-        # By ID
-        (By.ID, field_id),
-        # By name
-        (By.NAME, field_id),
-        # Common Angular attribute patterns
-        (By.XPATH, f"//*[@ng-model='{field_id}']"),
-        (By.XPATH, f"//*[@formcontrolname='{field_id}']"),
-        (By.XPATH, f"//*[@name='{field_id}']"),
-        (By.XPATH, f"//*[contains(@id, '{field_id}')]"),
-        # Label-based approach
-        (By.XPATH, f"//label[contains(text(), '{field_id}')]/following::input[1]"),
-        # Input with placeholder
-        (By.XPATH, f"//input[@placeholder='{field_id}']"),
-    ]
-
-    for by, selector in strategies:
-        try:
-            # Wait for element to be clickable
-            wait = WebDriverWait(driver, 0.2)  # Increased wait time
-            element = wait.until(EC.element_to_be_clickable((by, selector)))
-
-            # Handle different input types based on field_type
-            if field_type == "text" or field_type == "number" or field_type == "email":
-                element.clear()
-                element.send_keys(value)
-            elif field_type == "textarea":
-                element.clear()
-                element.send_keys(value)
-            elif field_type == "radio":
-                handle_radio_button(driver, element, value)
-            elif field_type == "checkbox":
-                handle_checkbox(element, value)
-            elif field_type == "select":
-                handle_dropdown(driver, element, value)
-            elif field_type == "date":
-                handle_date_input(driver, element, value)
-            elif field_type == "time":
-                handle_time_input(driver, element, value)
-            else:
-                # Default case - try to send keys
-                element.clear()
-                element.send_keys(value)
-
-            print(f"Filled {field_id} with {value} using {by} selector: {selector}")
-            return
-        except Exception as e:
-            continue
-
-    print(f"Could not find field: {field_id} for {data_key}")
-
-def handle_date_input(driver, element, value):
-    """Handle date input fields."""
-    # Clear existing value
-    element.clear()
-
-    # Some date fields require special handling
+def fill_element(page: Page, field_id: str, value: str, data_key: str, field_type: str):
+    """Fill a form element using the appropriate method based on field type."""
     try:
-        # Try direct input first
-        element.send_keys(value)
-    except:
-        # If direct input fails, try JavaScript
-        driver.execute_script(
-            "arguments[0].value = arguments[1]", element, value)
-
-def handle_time_input(driver, element, value):
-    """Handle time input fields."""
-    # Clear existing value
-    element.clear()
-
-    # Try direct input first
-    try:
-        element.send_keys(value)
-    except:
-        # If direct input fails, try JavaScript
-        driver.execute_script(
-            "arguments[0].value = arguments[1]", element, value)
-
-def handle_radio_button(driver, element, value):
-    """Handle radio button selection."""
-    tag_name = element.tag_name.lower()
-
-    # If element is already the radio button
-    if tag_name == "input" and element.get_attribute("type") == "radio":
-        # If the value is a radio button ID
-        if value.startswith("rd"):
+        # Special handling for radio buttons with ID values
+        if field_type == "radio" and value.startswith("rd"):
             try:
-                radio = driver.find_element(By.ID, value)
-                driver.execute_script("arguments[0].click();", radio)
+                # If value is a radio button ID (like rdAsbestos), use it directly
+                page.click(f"#{value}")
+                print(f"Selected radio button with ID: {value}")
                 return
-            except:
-                # If ID not found, continue with normal handling
-                pass
+            except Exception as e:
+                print(f"Could not select radio directly, trying other methods: {e}")
 
+        # Try to find the element using various selectors
+        selectors = [
+            f"#{field_id}",  # By ID
+            f"[name={field_id}]",  # By name
+            f"[ng-model='{field_id}']",  # Angular ng-model
+            f"[formcontrolname='{field_id}']",  # Angular reactive forms
+            f"[id*='{field_id}']",  # ID contains
+            f"label:has-text('{field_id}') + input, label:has-text('{field_id}') ~ input",  # Label + adjacent input
+            f"[placeholder='{field_id}']"  # Placeholder
+        ]
+
+        # Add specific selector for select elements
+        if field_type == "select":
+            selectors.append(f"label:has-text('{field_id}') ~ select")
+
+        # Try each selector
+        element_handle = None
+        used_selector = None
+
+        for selector in selectors:
+            if page.is_visible(selector, timeout=100):
+                element_handle = page.locator(selector).first
+                used_selector = selector
+                break
+
+        if not element_handle:
+            print(f"Could not find field: {field_id} for {data_key}")
+            return
+
+        # Handle based on field type
+        if field_type == "text" or field_type == "number" or field_type == "email":
+            page.fill(used_selector, value)
+
+        elif field_type == "address":
+            handle_address(page, used_selector, value)
+
+        elif field_type == "textarea":
+            page.fill(used_selector, value)
+
+        elif field_type == "select":
+            handle_dropdown(page, used_selector, value)
+
+        elif field_type == "date":
+            page.fill(used_selector, value)
+            # Fallback to JS if needed
+            page.evaluate(f'document.querySelector("{used_selector}").value = "{value}"')
+
+        elif field_type == "radio":
+            handle_radio_button(page, used_selector, value)
+
+        elif field_type == "checkbox":
+            handle_checkbox(page, used_selector, value)
+
+        else:
+            # Default to fill
+            page.fill(used_selector, value)
+
+        print(f"Filled {field_id} with {value} using selector: {used_selector}")
+
+    except Exception as e:
+        print(f"Error filling {field_id}: {e}")
+
+def handle_dropdown(page: Page, selector: str, value: str):
+    """Handle dropdown selection with special handling for Angular selects."""
+    try:
+        # First try standard select method
+        page.select_option(selector, label=value)
+        return
+    except:
+        pass
+
+    # Get all options
+    options = page.locator(f"{selector} option").all()
+    for i, option in enumerate(options):
+        option_text = option.inner_text().strip()
+        option_value = option.get_attribute("value") or ""
+
+        # Try different matching strategies
+        if option_text == value or option_value == value:
+            page.select_option(selector, index=i)
+            return
+
+        # Check for partial text match (ignoring spaces)
+        if value.strip() in option_text.replace(" ", ""):
+            page.select_option(selector, index=i)
+            return
+
+        # Handle Angular's format "1: Hours"
+        if ":" in option_value and value in option_value:
+            page.select_option(selector, index=i)
+            return
+
+        # Extra check for time values like "08:00" in "8: 08:00"
+        if ":" in option_value and value.lstrip("0") in option_value:
+            page.select_option(selector, index=i)
+            return
+
+    # JavaScript fallback for stubborn selects
+    options = page.evaluate(f"""() => {{
+        const select = document.querySelector("{selector}");
+        const options = Array.from(select.options);
+        for (let i = 0; i < options.length; i++) {{
+            const option = options[i];
+            if (option.text.includes("{value}")) {{
+                select.selectedIndex = i;
+                select.dispatchEvent(new Event('change'));
+                return true;
+            }}
+        }}
+        return false;
+    }}""")
+
+    if not options:
+        print(f"Could not find dropdown option for: {value}")
+
+def handle_radio_button(page: Page, selector: str, value: str):
+    """Handle radio button selection."""
+    # Check if the element is a radio button
+    element_type = page.evaluate(f'document.querySelector("{selector}").type')
+
+    if element_type == "radio":
         # Standard Yes/No handling
         if value.lower() in ["yes", "true", "1"]:
             radio_value = "true"
@@ -161,95 +180,267 @@ def handle_radio_button(driver, element, value):
         else:
             radio_value = value
 
-        # Try to find the related radio button with the matching value
-        try:
-            form_group = element.find_element(By.XPATH,
-                "./ancestor::div[contains(@class, 'form') or contains(@class, 'radio')]")
-            radio_buttons = form_group.find_elements(By.XPATH, ".//input[@type='radio']")
+        # Try to find the related radio with matching value
+        form_group_selector = f"document.querySelector('{selector}').closest('.form-group, .radio, fieldset')"
+        radio_selectors = page.evaluate(f"""() => {{
+            const group = {form_group_selector};
+            if (!group) return [];
+            const radios = Array.from(group.querySelectorAll('input[type="radio"]'));
+            return radios.map(r => '#' + r.id);
+        }}""")
 
-            for radio in radio_buttons:
-                if radio.get_attribute("value") == radio_value or radio.get_attribute("id") == radio_value:
-                    driver.execute_script("arguments[0].click();", radio)
-                    return
-        except:
-            pass
+        for radio_selector in radio_selectors:
+            radio_element_value = page.evaluate(f'document.querySelector("{radio_selector}").value')
+            if radio_element_value == radio_value or radio_selector.replace('#', '') == radio_value:
+                page.click(radio_selector)
+                return
 
-    # If specific value not found or element isn't a radio, just click the provided element
-    driver.execute_script("arguments[0].click();", element)
+    # If specific value not found, just click the provided element
+    page.click(selector)
 
-def handle_checkbox(element, value):
+def handle_checkbox(page: Page, selector: str, value: str):
     """Handle checkbox selection."""
-    is_checked = element.is_selected()
+    is_checked = page.is_checked(selector)
     should_check = value.lower() in ["yes", "true", "1"]
 
     if is_checked != should_check:
-        element.click()
+        page.click(selector)
 
+def handle_address(page: Page, selector: str, value: str):
+    """Handle address input with autocomplete."""
+    # Fill the address field
+    page.fill(selector, value)
 
-def handle_dropdown(driver, element, value):
-    """Handle dropdown selection."""
-    tag_name = element.tag_name.lower()
+    # Wait for autocomplete suggestions to appear
+    page.wait_for_timeout(1000)
 
-    if tag_name != "select":
-        # If not a select element, try as a regular input
-        element.clear()
-        element.send_keys(value)
-        return
+    # Try to select the first Google Maps autocomplete suggestion
+    try:
+        # Check for Google's autocomplete dropdown
+        suggestion_selectors = [
+            ".pac-container .pac-item:first-child",  # Standard Google Places API
+            ".pac-container div:first-child",        # Alternative structure
+            "ul.pac-container li:first-child",       # Another variation
+            "[data-reach-combobox-popover] [data-reach-combobox-option]:first-child"  # For some React implementations
+        ]
 
-    # Get all options
-    options = element.find_elements(By.TAG_NAME, "option")
+        for suggestion_selector in suggestion_selectors:
+            if page.is_visible(suggestion_selector, timeout=300):
+                page.click(suggestion_selector)
+                print(f"Selected address from Google autocomplete using: {suggestion_selector}")
+                break
+        else:
+            # If no suggestions found, try pressing Enter to select the top suggestion
+            page.press(selector, "Enter")
+            print("Pressed Enter to select top Google autocomplete suggestion")
+    except Exception as e:
+        print(f"Error selecting address from Google autocomplete: {e}")
 
-    # Try several matching strategies
-    for option in options:
-        option_text = option.text.strip()
-        option_value = option.get_attribute("value")
+def monitor_navigation(page: Page, current_page: str, mappings, data):
+    """Monitor for Angular client-side navigation and fill forms as needed."""
+    # Install route change detector for Angular
+    page.evaluate("""() => {
+        // Monitor for Angular route changes using router events
+        window._prevPathname = location.pathname;
+        window._routeChanges = [];
+        
+        // Watch for DOM changes that might indicate navigation
+        const observer = new MutationObserver((mutations) => {
+            // Check if URL path has changed
+            if (location.pathname !== window._prevPathname) {
+                window._routeChanges.push(location.pathname);
+                window._prevPathname = location.pathname;
+            }
+            
+            // Check for Angular view container changes
+            const hasRouterOutlet = document.querySelector('router-outlet, [ng-view], .ng-view');
+            if (hasRouterOutlet) {
+                // If router outlet's next sibling changed, likely a view change
+                window._routeChanges.push('view-changed');
+            }
+        });
+        
+        // Observe the entire document for changes
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        
+        // Intercept history methods for SPA navigation
+        const originalPushState = history.pushState;
+        const originalReplaceState = history.replaceState;
+        
+        history.pushState = function() {
+            originalPushState.apply(this, arguments);
+            window._routeChanges.push(location.pathname);
+        };
+        
+        history.replaceState = function() {
+            originalReplaceState.apply(this, arguments);
+            window._routeChanges.push(location.pathname);
+        };
+    }""")
 
-        # Check for exact matches first
-        if option_text == value or option_value == value:
-            option.click()
-            return
+    # Check for visible page indicators instead of URL
+    def detect_current_page():
+        """Try to determine which page we're currently on based on visible content"""
+        try:
+            # Look for page-specific elements or content
+            page_title = page.evaluate("""() => {
+                // Try different ways to find the page title/heading
+                const h1 = document.querySelector('h1, .page-title, .title');
+                if (h1) return h1.innerText;
+                
+                // Look for breadcrumb
+                const breadcrumb = document.querySelector('.breadcrumb li:last-child');
+                if (breadcrumb) return breadcrumb.innerText;
+                
+                // Look for form legend or fieldset title
+                const legend = document.querySelector('legend, fieldset > h2');
+                if (legend) return legend.innerText;
+                
+                return document.title;
+            }""")
 
-        # Check for partial text match (ignoring spaces)
-        if value.strip() in option_text.replace(" ", ""):
-            option.click()
-            return
+            if page_title:
+                page_title = page_title.lower()
+                print(f"Detected page title: {page_title}")
 
-        # Handle Angular's format "1: Hours"
-        if ":" in option_value and value in option_value:
-            option.click()
-            return
+                # Match against our known pages
+                for page_data in mappings["pages"]:
+                    page_name = list(page_data.keys())[0]
+                    if page_name.lower() in page_title or page_title in page_name.lower():
+                        return page_name
 
-        # Extra check for time values like "08:00" in "8: 08:00"
-        if ":" in option_value and value.lstrip("0") in option_value:
-            option.click()
-            return
+            # Additionally scan for known form fields
+            for page_data in mappings["pages"]:
+                page_name = list(page_data.keys())[0]
+                page_mapping = page_data[page_name]
 
-        print("Could not find dropdown option for:", value)
+                # Count how many fields from this page mapping are visible
+                visible_fields = 0
+                for field_id in page_mapping.keys():
+                    try:
+                        # Check if any element with this ID or containing this text is visible
+                        selector = f"#{field_id}, [id*='{field_id}'], label:has-text('{field_id}')"
+                        if page.is_visible(selector, timeout=100):
+                            visible_fields += 1
+                    except:
+                        pass
 
-def monitor_navigation(driver, current_page, mappings, data):
-    """Monitor for page navigation and fill new forms as needed."""
-    current_url = driver.current_url
+                # If we found multiple fields from this mapping, it's likely this page
+                if visible_fields > 2:  # Threshold: at least 3 matching fields
+                    print(f"Detected page {page_name} based on {visible_fields} visible fields")
+                    return page_name
+
+            return None
+        except Exception as e:
+            print(f"Error detecting current page: {e}")
+            return None
+
+    # Process the current page
+    current_detected_page = detect_current_page()
+    if current_detected_page:
+        print(f"Initial page detected: {current_detected_page}")
+        fill_form(page, current_detected_page, mappings, data)
+    else:
+        print(f"Using URL-based initial page: {current_page}")
+        fill_form(page, current_page, mappings, data)
+
+    # Watch for "Next" button clicks
+    def watch_for_next_button():
+        try:
+            next_button = page.query_selector("button:has-text('Next'), input[value='Next'], .btn-primary:has-text('Next')")
+            if next_button and next_button.is_visible():
+                print("Found Next button - setting up click monitor")
+
+                # Save current state before click
+                pre_click_content = page.evaluate("document.body.innerHTML.length")
+
+                # Set up detection for the page change after click
+                def check_after_click():
+                    page.wait_for_timeout(1500)  # Wait for Angular to update the view
+                    new_content_size = page.evaluate("document.body.innerHTML.length")
+
+                    # If content size changed significantly, likely a new page loaded
+                    if abs(new_content_size - pre_click_content) > 1000:
+                        print("Content changed after button click - checking for new page")
+                        new_page = detect_current_page()
+                        if new_page:
+                            print(f"New page detected after navigation: {new_page}")
+                            fill_form(page, new_page, mappings, data)
+
+                # Install click event listener on the next button
+                next_button.evaluate("el => el.addEventListener('click', () => window._clickedNext = true)")
+
+                # Return the checker function
+                return check_after_click
+            return None
+        except Exception as e:
+            print(f"Error watching for next button: {e}")
+            return None
+
+    # Main monitoring loop
+    processed_pages = set([current_detected_page or current_page])
+    last_check_time = time.time()
 
     while True:
-        time.sleep(1)  # Check every second
+        time.sleep(1)
         try:
-            new_url = driver.current_url
-            if new_url != current_url:
-                # URL changed, check if it's a known page
-                current_url = new_url
-                for page in mappings["pages"]:
-                    page_name = list(page.keys())[0]
-                    if page_name in current_url:
-                        fill_form(driver, page_name, mappings, data)
-                        break
-        except:
-            print("Browser closed, exiting.")
-            break
+            # Check if user clicked Next
+            clicked_next = page.evaluate("window._clickedNext === true")
+            if clicked_next:
+                page.evaluate("window._clickedNext = false")
+                print("Detected Next button click")
+                page.wait_for_timeout(1500)  # Wait for Angular to update
+
+                new_page = detect_current_page()
+                if new_page and new_page not in processed_pages:
+                    print(f"New page detected after Next button: {new_page}")
+                    fill_form(page, new_page, mappings, data)
+                    processed_pages.add(new_page)
+
+            # Check for route changes
+            route_changes = page.evaluate("window._routeChanges || []")
+            if route_changes:
+                page.evaluate("window._routeChanges = []")
+                print(f"Detected route changes: {route_changes}")
+
+                # Wait for Angular to finish rendering
+                page.wait_for_timeout(1000)
+                page.wait_for_load_state("networkidle", timeout=3000)
+
+                new_page = detect_current_page()
+                if new_page and new_page not in processed_pages:
+                    print(f"New page detected after route change: {new_page}")
+                    fill_form(page, new_page, mappings, data)
+                    processed_pages.add(new_page)
+
+            # Periodically check for Next button
+            if time.time() - last_check_time > 5:
+                checker_fn = watch_for_next_button()
+                if checker_fn:
+                    last_check_time = time.time()
+
+            # Fallback: periodically check if page content changed substantially
+            if time.time() - last_check_time > 10:
+                last_check_time = time.time()
+                new_page = detect_current_page()
+                if new_page and new_page not in processed_pages:
+                    print(f"Detected new page during periodic check: {new_page}")
+                    fill_form(page, new_page, mappings, data)
+                    processed_pages.add(new_page)
+
+        except Exception as e:
+            print(f"Error in navigation monitor: {e}")
+            # Don't break the loop on transient errors
 
 def main():
     parser = argparse.ArgumentParser(description='Fill WorkSafeBC forms automatically')
     parser.add_argument('--page', default='general-information',
                         help='Starting page name (default: general-information)')
+    parser.add_argument('--headless', action='store_true',
+                        help='Run in headless mode (default: false)')
     args = parser.parse_args()
 
     # Load data and mappings
@@ -257,23 +448,41 @@ def main():
     data = load_json_file(os.path.join(script_dir, 'data.json'))
     mappings = load_json_file(os.path.join(script_dir, 'mappings.json'))
 
-    # Set up Chrome options
-    chrome_options = Options()
-    chrome_options.add_experimental_option("detach", True)  # Keep browser open
+    with sync_playwright() as playwright:
+        # Launch browser with specified options
+        browser = playwright.chromium.launch(headless=args.headless)
 
-    # Initialize the WebDriver
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()),
-                             options=chrome_options)
+        # Create a new browser context with viewport and device options
+        context = browser.new_context(
+            viewport={'width': 1400, 'height': 900},
+            accept_downloads=True
+        )
 
-    # Open the website with the specified page
-    url = f"https://prevnop.online.worksafebc.com/{args.page}"
-    driver.get(url)
+        # Create a new page
+        page = context.new_page()
 
-    # Fill the initial form
-    fill_form(driver, args.page, mappings, data)
+        try:
+            # Open the website with the specified page
+            url = f"https://prevnop.online.worksafebc.com/{args.page}"
+            page.goto(url)
 
-    # Monitor for navigation to other pages
-    monitor_navigation(driver, args.page, mappings, data)
+            # Monitor for navigation to other pages
+            monitor_navigation(page, args.page, mappings, data)
+
+            # Wait for user to close browser manually
+            print("Form filling complete. Press Ctrl+C to exit.")
+            while True:
+                time.sleep(1)
+
+        except KeyboardInterrupt:
+            print("Exiting due to user interrupt")
+        except Exception as e:
+            print(f"Error: {e}")
+        finally:
+            if not args.headless:
+                input("Press Enter to close the browser...")
+            context.close()
+            browser.close()
 
 if __name__ == "__main__":
     main()
