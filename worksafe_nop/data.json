@@ -1,0 +1,15 @@
+{
+  "FIRST_NAME": "John",
+  "LAST_NAME": "Doe",
+  "PHONE_NUMBER": "1234567890",
+  "EMAIL": "john.doe@example.com",
+  "PROJECT_TYPE": "rdAsbestos",
+  "ADDRESS": "123 Main Street",
+  "ADDRESS_DETAILS": "Building entrance on north side",
+  "WORK_DATE": "2023-10-15",
+  "DURATION": "8",
+  "DURATION_UNIT": "Hours",
+  "START_TIME": "08:00",
+  "END_TIME": "16:00",
+  "WORKER_COUNT": "3"
+}

@@ -1,0 +1,64 @@
+{
+  "pages": [
+    {
+      "general-information": {
+        "projectType": {
+          "type": "radio",
+          "data_key": "PROJECT_TYPE"
+        },
+        "firstName": {
+          "type": "text",
+          "data_key": "FIRST_NAME"
+        },
+        "lastName": {
+          "type": "text",
+          "data_key": "LAST_NAME"
+        },
+        "inputPhone": {
+          "type": "text",
+          "data_key": "PHONE_NUMBER"
+        },
+        "email": {
+          "type": "text",
+          "data_key": "EMAIL"
+        }
+      }
+    },
+    {
+      "worksite-details": {
+        "SearchTextField": {
+          "type": "address",
+          "data_key": "ADDRESS"
+        },
+        "detailsText": {
+          "type": "textarea",
+          "data_key": "ADDRESS_DETAILS"
+        },
+        "myDate": {
+          "type": "date",
+          "data_key": "WORK_DATE"
+        },
+        "durationTime": {
+          "type": "number",
+          "data_key": "DURATION"
+        },
+        "durationUnit": {
+          "type": "select",
+          "data_key": "DURATION_UNIT"
+        },
+        "startTime": {
+          "type": "select",
+          "data_key": "START_TIME"
+        },
+        "endTime": {
+          "type": "select",
+          "data_key": "END_TIME"
+        },
+        "workercount": {
+          "type": "number",
+          "data_key": "WORKER_COUNT"
+        }
+      }
+    }
+  ]
+}
