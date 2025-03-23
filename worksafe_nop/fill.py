@@ -2,12 +2,22 @@ import json
 import os
 import time
 import argparse
-from playwright.sync_api import sync_playwright, Page, Playwright
+from playwright.sync_api import sync_playwright, Page
+
+from worksafe_nop.handlers import (
+    handle_address,
+    handle_checkbox,
+    handle_dropdown,
+    handle_radio_button,
+)
+from worksafe_nop.settings import Settings
+
 
 def load_json_file(filename):
     """Load JSON data from a file."""
-    with open(filename, 'r') as file:
+    with open(filename, "r") as file:
         return json.load(file)
+
 
 def fill_form(page: Page, page_name: str, mappings, data):
     """Fill form fields based on mappings."""
@@ -37,7 +47,8 @@ def fill_form(page: Page, page_name: str, mappings, data):
             if value:
                 fill_element(page, field_id, value, data_key, field_type)
                 # Small pause between field interactions
-                page.wait_for_timeout(100)
+                page.wait_for_timeout(Settings.FIELD_INTERACTION_DELAY)
+
 
 def fill_element(page: Page, field_id: str, value: str, data_key: str, field_type: str):
     """Fill a form element using the appropriate method based on field type."""
@@ -50,7 +61,7 @@ def fill_element(page: Page, field_id: str, value: str, data_key: str, field_typ
             f"[formcontrolname='{field_id}']",  # Angular reactive forms
             f"[id*='{field_id}']",  # ID contains
             f"label:has-text('{field_id}') + input, label:has-text('{field_id}') ~ input",  # Label + adjacent input
-            f"[placeholder='{field_id}']"  # Placeholder
+            f"[placeholder='{field_id}']",  # Placeholder
         ]
 
         # Add specific selector for select elements
@@ -104,206 +115,6 @@ def fill_element(page: Page, field_id: str, value: str, data_key: str, field_typ
     except Exception as e:
         print(f"Error filling {field_id}: {e}")
 
-def handle_dropdown(page: Page, selector: str, value: str):
-    """Handle dropdown selection with special handling for Angular selects."""
-    try:
-        # First try standard select method
-        page.select_option(selector, label=value)
-        return
-    except:
-        pass
-
-    # Get all options
-    options = page.locator(f"{selector} option").all()
-    for i, option in enumerate(options):
-        option_text = option.inner_text().strip()
-        option_value = option.get_attribute("value") or ""
-
-        # Try different matching strategies
-        if option_text == value or option_value == value:
-            page.select_option(selector, index=i)
-            return
-
-        # Check for partial text match (ignoring spaces)
-        if value.strip() in option_text.replace(" ", ""):
-            page.select_option(selector, index=i)
-            return
-
-        # Handle Angular's format "1: Hours"
-        if ":" in option_value and value in option_value:
-            page.select_option(selector, index=i)
-            return
-
-        # Extra check for time values like "08:00" in "8: 08:00"
-        if ":" in option_value and value.lstrip("0") in option_value:
-            page.select_option(selector, index=i)
-            return
-
-    # JavaScript fallback for stubborn selects
-    options = page.evaluate(f"""() => {{
-        const select = document.querySelector("{selector}");
-        const options = Array.from(select.options);
-        for (let i = 0; i < options.length; i++) {{
-            const option = options[i];
-            if (option.text.includes("{value}")) {{
-                select.selectedIndex = i;
-                select.dispatchEvent(new Event('change'));
-                return true;
-            }}
-        }}
-        return false;
-    }}""")
-
-    if not options:
-        print(f"Could not find dropdown option for: {value}")
-
-def handle_radio_button(page: Page, selector: str, value: str):
-    """Handle radio button selection."""
-    try:
-        # Find all radio inputs with this name
-        radio_inputs = page.locator(f'{selector}').all()
-        if not radio_inputs:
-            print(f"Error: No radio inputs found with selector: {selector}")
-            return
-            
-        # Find the radio input whose ID contains the value
-        value_lower = value.lower()
-        for radio in radio_inputs:
-            radio_id = radio.get_attribute('id') or ''
-            radio_element_value = radio.get_attribute('value') or ''
-            
-            # Check if ID or value match
-            if (value_lower in radio_id.lower() or 
-                radio_element_value.lower() == value_lower or
-                radio_element_value.lower().replace(" ", "") == value_lower.replace(" ", "")):
-                
-                # For Angular applications, clicking the span might be more reliable
-                radio_id_selector = f'#{radio_id}'
-                span_selector = f'label[for="{radio_id}"] span.checkmark'
-                
-                try:
-                    # Try clicking the span first
-                    if page.is_visible(span_selector, timeout=100):
-                        page.click(span_selector)
-                        print(f"Clicked radio span: {span_selector}")
-                    # If not, click the input directly
-                    else:
-                        page.click(radio_id_selector)
-                        print(f"Clicked radio input: {radio_id_selector}")
-                    return
-                except Exception as direct_click_error:
-                    print(f"Direct click failed, trying label: {direct_click_error}")
-                    
-                    # Try clicking the label if span/input clicks failed
-                    try:
-                        label_selector = f'label[for="{radio_id}"]'
-                        if page.is_visible(label_selector, timeout=100):
-                            page.click(label_selector)
-                            print(f"Clicked radio label: {label_selector}")
-                            return
-                    except Exception as label_click_error:
-                        print(f"Label click also failed: {label_click_error}")
-                        
-        # If we got here, we didn't find a matching radio
-        print(f"Could not find radio option matching value: {value}")
-        # Try clicking the first radio as fallback
-        if radio_inputs:
-            first_radio_id = radio_inputs[0].get_attribute('id')
-            try:
-                page.click(f'#{first_radio_id}')
-                print(f"Clicked first radio as fallback: #{first_radio_id}")
-            except:
-                print("Could not click any radio button")
-                
-    except Exception as e:
-        print(f"Error in handle_radio_button: {e}")
-        # Last resort: try clicking original selector
-        try:
-            page.click(selector)
-            print(f"Clicked original selector as last resort: {selector}")
-        except:
-            pass
-
-def handle_checkbox(page: Page, selector: str, value: str):
-    """Handle checkbox selection."""
-    try:
-        # Convert value to boolean if it's not already
-        if isinstance(value, str):
-            should_check = value.lower() in ["yes", "true", "1", "on"]
-        else:
-            should_check = bool(value)
-            
-        # First try direct checkbox
-        try:
-            is_checked = page.is_checked(selector)
-            if is_checked != should_check:
-                page.click(selector, timeout=300)
-                print(f"Clicked checkbox {selector} directly")
-                return
-        except Exception as e:
-            print(f"Direct checkbox click failed: {e}")
-        
-        # Try clicking the associated span.checkmark-checkbox
-        try:
-            # First identify if this is an Angular style checkbox
-            input_exists = page.evaluate(f'!!document.querySelector("{selector}")')
-            if input_exists:
-                # Get current checked state
-                is_checked = page.evaluate(f'document.querySelector("{selector}").checked')
-                
-                # If state needs to be changed
-                if is_checked != should_check:
-                    # Try clicking the span
-                    span_selector = f'label[for="{selector.replace("#", "")}"] span.checkmark-checkbox'
-                    if page.is_visible(span_selector):
-                        page.click(span_selector)
-                        print(f"Clicked checkbox span {span_selector}")
-                        return
-                    
-                    # Try clicking the label
-                    label_selector = f'label[for="{selector.replace("#", "")}"]'
-                    if page.is_visible(label_selector):
-                        page.click(label_selector)
-                        print(f"Clicked checkbox label {label_selector}")
-                        return
-            
-        except Exception as e:
-            print(f"Span/label click failed: {e}")
-            
-        print(f"WARNING: Could not set checkbox {selector} to {should_check}")
-            
-    except Exception as e:
-        print(f"Error in handle_checkbox: {e}")
-
-def handle_address(page: Page, selector: str, value: str):
-    """Handle address input with autocomplete."""
-    # Fill the address field
-    page.fill(selector, value)
-
-    # Wait for autocomplete suggestions to appear
-    page.wait_for_timeout(1000)
-
-    # Try to select the first Google Maps autocomplete suggestion
-    try:
-        # Check for Google's autocomplete dropdown
-        suggestion_selectors = [
-            ".pac-container .pac-item:first-child",  # Standard Google Places API
-            ".pac-container div:first-child",        # Alternative structure
-            "ul.pac-container li:first-child",       # Another variation
-            "[data-reach-combobox-popover] [data-reach-combobox-option]:first-child"  # For some React implementations
-        ]
-
-        for suggestion_selector in suggestion_selectors:
-            if page.is_visible(suggestion_selector, timeout=300):
-                page.click(suggestion_selector)
-                print(f"Selected address from Google autocomplete using: {suggestion_selector}")
-                break
-        else:
-            # If no suggestions found, try pressing Enter to select the top suggestion
-            page.press(selector, "Enter")
-            print("Pressed Enter to select top Google autocomplete suggestion")
-    except Exception as e:
-        print(f"Error selecting address from Google autocomplete: {e}")
 
 def monitor_navigation(page: Page, current_page: str, mappings, data):
     """Monitor for Angular client-side navigation and fill forms as needed."""
@@ -398,7 +209,9 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
     # Watch for "Next" button clicks
     def watch_for_next_button():
         try:
-            next_button = page.query_selector("button:has-text('Next'), input[value='Next'], .btn-primary:has-text('Next')")
+            next_button = page.query_selector(
+                "button:has-text('Next'), input[value='Next'], .btn-primary:has-text('Next')"
+            )
             if next_button and next_button.is_visible():
                 print("Found Next button - setting up click monitor")
 
@@ -407,11 +220,16 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
 
                 # Set up detection for the page change after click
                 def check_after_click():
-                    page.wait_for_timeout(1500)  # Wait for Angular to update the view
+                    page.wait_for_timeout(
+                        Settings.NAVIGATION_TIMEOUT
+                    )  # Wait for Angular to update the view
                     new_content_size = page.evaluate("document.body.innerHTML.length")
 
                     # If content size changed significantly, likely a new page loaded
-                    if abs(new_content_size - pre_click_content) > 1000:
+                    if (
+                        abs(new_content_size - pre_click_content)
+                        > Settings.CONTENT_CHANGE_THRESHOLD
+                    ):
                         print("Content changed after button click - checking for new page")
                         new_page = detect_current_page()
                         if new_page:
@@ -419,7 +237,9 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
                             fill_form(page, new_page, mappings, data)
 
                 # Install click event listener on the next button
-                next_button.evaluate("el => el.addEventListener('click', () => window._clickedNext = true)")
+                next_button.evaluate(
+                    "el => el.addEventListener('click', () => window._clickedNext = true)"
+                )
 
                 # Return the checker function
                 return check_after_click
@@ -440,7 +260,7 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
             if clicked_next:
                 page.evaluate("window._clickedNext = false")
                 print("Detected Next button click")
-                page.wait_for_timeout(1500)  # Wait for Angular to update
+                page.wait_for_timeout(Settings.NAVIGATION_TIMEOUT)  # Wait for Angular to update
 
                 new_page = detect_current_page()
                 if new_page and new_page not in processed_pages:
@@ -455,8 +275,8 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
                 print(f"Detected route changes: {route_changes}")
 
                 # Wait for Angular to finish rendering
-                page.wait_for_timeout(1000)
-                page.wait_for_load_state("networkidle", timeout=3000)
+                page.wait_for_timeout(Settings.STANDARD_TIMEOUT)
+                page.wait_for_load_state("networkidle")
 
                 new_page = detect_current_page()
                 if new_page and new_page not in processed_pages:
@@ -465,13 +285,13 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
                     processed_pages.add(new_page)
 
             # Periodically check for Next button
-            if time.time() - last_check_time > 5:
+            if time.time() - last_check_time > Settings.NEXT_BUTTON_CHECK_INTERVAL:
                 checker_fn = watch_for_next_button()
                 if checker_fn:
                     last_check_time = time.time()
 
             # Fallback: periodically check if page content changed substantially
-            if time.time() - last_check_time > 10:
+            if time.time() - last_check_time > Settings.PERIODIC_PAGE_CHECK_INTERVAL:
                 last_check_time = time.time()
                 new_page = detect_current_page()
                 if new_page and new_page not in processed_pages:
@@ -483,18 +303,23 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
             print(f"Error in navigation monitor: {e}")
             # Don't break the loop on transient errors
 
+
 def main():
-    parser = argparse.ArgumentParser(description='Fill WorkSafeBC forms automatically')
-    parser.add_argument('--page', default='general-information',
-                        help='Starting page name (default: general-information)')
-    parser.add_argument('--headless', action='store_true',
-                        help='Run in headless mode (default: false)')
+    parser = argparse.ArgumentParser(description="Fill WorkSafeBC forms automatically")
+    parser.add_argument(
+        "--page",
+        default="general-information",
+        help="Starting page name (default: general-information)",
+    )
+    parser.add_argument(
+        "--headless", action="store_true", help="Run in headless mode (default: false)"
+    )
     args = parser.parse_args()
 
     # Load data and mappings
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    data = load_json_file(os.path.join(script_dir, 'data.json'))
-    mappings = load_json_file(os.path.join(script_dir, 'mappings.json'))
+    data = load_json_file(os.path.join(script_dir, "data.json"))
+    mappings = load_json_file(os.path.join(script_dir, "mappings.json"))
 
     with sync_playwright() as playwright:
         # Launch browser with specified options
@@ -502,8 +327,8 @@ def main():
 
         # Create a new browser context with viewport and device options
         context = browser.new_context(
-            viewport={'width': 1400, 'height': 900},
-            accept_downloads=True
+            viewport={"width": Settings.VIEWPORT_WIDTH, "height": Settings.VIEWPORT_HEIGHT},
+            accept_downloads=True,
         )
 
         # Create a new page
@@ -511,7 +336,7 @@ def main():
 
         try:
             # Open the website with the specified page
-            url = f"https://prevnop.online.worksafebc.com/{args.page}"
+            url = f"{Settings.URL}{args.page}"
             page.goto(url)
 
             # Monitor for navigation to other pages
@@ -531,6 +356,7 @@ def main():
                 input("Press Enter to close the browser...")
             context.close()
             browser.close()
+
 
 if __name__ == "__main__":
     main()

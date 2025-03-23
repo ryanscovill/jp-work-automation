@@ -90,6 +90,10 @@
           "type": "text",
           "data_key": "WORKSAFE_BC_ACCOUNT_NUMBER"
         },
+        "asbestosLicenseNumber": {
+          "type": "text",
+          "data_key": "ASBESTOS_LICENSE_NUMBER"
+        },
         "employerName": {
           "type": "text",
           "data_key": "EMPLOYER_NAME"
@@ -121,6 +125,10 @@
         "inputPhone": {
           "type": "text",
           "data_key": "PHONE_NUMBER"
+        },
+        "asbestosCertificationNumber": {
+          "type": "text",
+          "data_key": "ASBESTOS_CERTIFICATION_NUMBER"
         },
         "mulitipleEmployers": {
           "type": "radio",
