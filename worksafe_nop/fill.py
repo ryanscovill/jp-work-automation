@@ -41,16 +41,6 @@ def fill_form(page: Page, page_name: str, mappings, data):
 def fill_element(page: Page, field_id: str, value: str, data_key: str, field_type: str):
     """Fill a form element using the appropriate method based on field type."""
     try:
-        # Special handling for radio buttons with ID values
-        if field_type == "radio" and value.startswith("rd"):
-            try:
-                # If value is a radio button ID (like rdAsbestos), use it directly
-                page.click(f"#{value}")
-                print(f"Selected radio button with ID: {value}")
-                return
-            except Exception as e:
-                print(f"Could not select radio directly, trying other methods: {e}")
-
         # Try to find the element using various selectors
         selectors = [
             f"#{field_id}",  # By ID
@@ -71,7 +61,7 @@ def fill_element(page: Page, field_id: str, value: str, data_key: str, field_typ
         used_selector = None
 
         for selector in selectors:
-            if page.is_visible(selector, timeout=100):
+            if page.locator(selector).count() > 0:
                 element_handle = page.locator(selector).first
                 used_selector = selector
                 break
@@ -168,43 +158,121 @@ def handle_dropdown(page: Page, selector: str, value: str):
 
 def handle_radio_button(page: Page, selector: str, value: str):
     """Handle radio button selection."""
-    # Check if the element is a radio button
-    element_type = page.evaluate(f'document.querySelector("{selector}").type')
-
-    if element_type == "radio":
-        # Standard Yes/No handling
-        if value.lower() in ["yes", "true", "1"]:
-            radio_value = "true"
-        elif value.lower() in ["no", "false", "0"]:
-            radio_value = "false"
-        else:
-            radio_value = value
-
-        # Try to find the related radio with matching value
-        form_group_selector = f"document.querySelector('{selector}').closest('.form-group, .radio, fieldset')"
-        radio_selectors = page.evaluate(f"""() => {{
-            const group = {form_group_selector};
-            if (!group) return [];
-            const radios = Array.from(group.querySelectorAll('input[type="radio"]'));
-            return radios.map(r => '#' + r.id);
-        }}""")
-
-        for radio_selector in radio_selectors:
-            radio_element_value = page.evaluate(f'document.querySelector("{radio_selector}").value')
-            if radio_element_value == radio_value or radio_selector.replace('#', '') == radio_value:
-                page.click(radio_selector)
-                return
-
-    # If specific value not found, just click the provided element
-    page.click(selector)
+    try:
+        # Find all radio inputs with this name
+        radio_inputs = page.locator(f'{selector}').all()
+        if not radio_inputs:
+            print(f"Error: No radio inputs found with selector: {selector}")
+            return
+            
+        # Find the radio input whose ID contains the value
+        value_lower = value.lower()
+        for radio in radio_inputs:
+            radio_id = radio.get_attribute('id') or ''
+            radio_element_value = radio.get_attribute('value') or ''
+            
+            # Check if ID or value match
+            if (value_lower in radio_id.lower() or 
+                radio_element_value.lower() == value_lower or
+                radio_element_value.lower().replace(" ", "") == value_lower.replace(" ", "")):
+                
+                # For Angular applications, clicking the span might be more reliable
+                radio_id_selector = f'#{radio_id}'
+                span_selector = f'label[for="{radio_id}"] span.checkmark'
+                
+                try:
+                    # Try clicking the span first
+                    if page.is_visible(span_selector, timeout=100):
+                        page.click(span_selector)
+                        print(f"Clicked radio span: {span_selector}")
+                    # If not, click the input directly
+                    else:
+                        page.click(radio_id_selector)
+                        print(f"Clicked radio input: {radio_id_selector}")
+                    return
+                except Exception as direct_click_error:
+                    print(f"Direct click failed, trying label: {direct_click_error}")
+                    
+                    # Try clicking the label if span/input clicks failed
+                    try:
+                        label_selector = f'label[for="{radio_id}"]'
+                        if page.is_visible(label_selector, timeout=100):
+                            page.click(label_selector)
+                            print(f"Clicked radio label: {label_selector}")
+                            return
+                    except Exception as label_click_error:
+                        print(f"Label click also failed: {label_click_error}")
+                        
+        # If we got here, we didn't find a matching radio
+        print(f"Could not find radio option matching value: {value}")
+        # Try clicking the first radio as fallback
+        if radio_inputs:
+            first_radio_id = radio_inputs[0].get_attribute('id')
+            try:
+                page.click(f'#{first_radio_id}')
+                print(f"Clicked first radio as fallback: #{first_radio_id}")
+            except:
+                print("Could not click any radio button")
+                
+    except Exception as e:
+        print(f"Error in handle_radio_button: {e}")
+        # Last resort: try clicking original selector
+        try:
+            page.click(selector)
+            print(f"Clicked original selector as last resort: {selector}")
+        except:
+            pass
 
 def handle_checkbox(page: Page, selector: str, value: str):
     """Handle checkbox selection."""
-    is_checked = page.is_checked(selector)
-    should_check = value.lower() in ["yes", "true", "1"]
-
-    if is_checked != should_check:
-        page.click(selector)
+    try:
+        # Convert value to boolean if it's not already
+        if isinstance(value, str):
+            should_check = value.lower() in ["yes", "true", "1", "on"]
+        else:
+            should_check = bool(value)
+            
+        # First try direct checkbox
+        try:
+            is_checked = page.is_checked(selector)
+            if is_checked != should_check:
+                page.click(selector, timeout=300)
+                print(f"Clicked checkbox {selector} directly")
+                return
+        except Exception as e:
+            print(f"Direct checkbox click failed: {e}")
+        
+        # Try clicking the associated span.checkmark-checkbox
+        try:
+            # First identify if this is an Angular style checkbox
+            input_exists = page.evaluate(f'!!document.querySelector("{selector}")')
+            if input_exists:
+                # Get current checked state
+                is_checked = page.evaluate(f'document.querySelector("{selector}").checked')
+                
+                # If state needs to be changed
+                if is_checked != should_check:
+                    # Try clicking the span
+                    span_selector = f'label[for="{selector.replace("#", "")}"] span.checkmark-checkbox'
+                    if page.is_visible(span_selector):
+                        page.click(span_selector)
+                        print(f"Clicked checkbox span {span_selector}")
+                        return
+                    
+                    # Try clicking the label
+                    label_selector = f'label[for="{selector.replace("#", "")}"]'
+                    if page.is_visible(label_selector):
+                        page.click(label_selector)
+                        print(f"Clicked checkbox label {label_selector}")
+                        return
+            
+        except Exception as e:
+            print(f"Span/label click failed: {e}")
+            
+        print(f"WARNING: Could not set checkbox {selector} to {should_check}")
+            
+    except Exception as e:
+        print(f"Error in handle_checkbox: {e}")
 
 def handle_address(page: Page, selector: str, value: str):
     """Handle address input with autocomplete."""
@@ -311,27 +379,6 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
                     page_name = list(page_data.keys())[0]
                     if page_name.lower() in page_title or page_title in page_name.lower():
                         return page_name
-
-            # Additionally scan for known form fields
-            for page_data in mappings["pages"]:
-                page_name = list(page_data.keys())[0]
-                page_mapping = page_data[page_name]
-
-                # Count how many fields from this page mapping are visible
-                visible_fields = 0
-                for field_id in page_mapping.keys():
-                    try:
-                        # Check if any element with this ID or containing this text is visible
-                        selector = f"#{field_id}, [id*='{field_id}'], label:has-text('{field_id}')"
-                        if page.is_visible(selector, timeout=100):
-                            visible_fields += 1
-                    except:
-                        pass
-
-                # If we found multiple fields from this mapping, it's likely this page
-                if visible_fields > 2:  # Threshold: at least 3 matching fields
-                    print(f"Detected page {page_name} based on {visible_fields} visible fields")
-                    return page_name
 
             return None
         except Exception as e:
