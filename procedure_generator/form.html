@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOP Source Information Form</title>
+    <!-- Import Tailwind CSS from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Import Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border-radius: 0.25rem;
+        }
+
+        .company-header {
+            background-color: #1e40af;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            border-radius: 0.25rem;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 p-4 md:p-8">
+    <div class="max-w-7xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+        <div class="company-header">
+            <h1 class="text-2xl font-bold">NOP SOURCE INFORMATION</h1>
+            <p class="italic">"Dedicated to Abatement Excellence"</p>
+        </div>
+
+        <form class="p-6">
+            <!-- Basic Project Information -->
+            <div class="form-section">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2" for="project-address">
+                            PROJECT ADDRESS & LOCATION NAME:
+                        </label>
+                        <input
+                            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="project-address" type="text">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2" for="project-name">
+                            PROJECT NAME:
+                        </label>
+                        <input
+                            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="project-name" type="text">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2" for="estimator">
+                            ESTIMATOR:
+                        </label>
+                        <input
+                            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="estimator" type="text">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2" for="unit-numbers">
+                            UNIT NUMBER(s):
+                        </label>
+                        <input
+                            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="unit-numbers" type="text">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2" for="job-quote">
+                            JOB # QUOTE #:
+                        </label>
+                        <input
+                            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="job-quote" type="text">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2" for="nop-number">
+                            NOP #:
+                        </label>
+                        <input
+                            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="nop-number" type="text">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Locations of Abatement -->
+            <div class="form-section">
+                <label class="block text-gray-700 font-bold mb-2" for="abatement-locations">
+                    LOCATIONS OF ABATEMENT:
+                </label>
+                <textarea
+                    class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="abatement-locations" rows="3"></textarea>
+            </div>
+
+            <!-- Hazardous Materials -->
+            <div class="form-section">
+                <label class="block text-gray-700 font-bold mb-2" for="hazardous-materials">
+                    HAZARDOUS MATERIALS:
+                </label>
+                <textarea
+                    class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="hazardous-materials" rows="3"></textarea>
+            </div>
+
+            <!-- Quote Type -->
+            <div class="form-section">
+                <div class="flex items-center mb-4">
+                    <div class="mr-4">
+                        <input type="radio" id="lump-sum" name="quote-type" class="mr-2">
+                        <label for="lump-sum" class="text-gray-700 font-bold">LUMP SUM</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="time-material" name="quote-type" class="mr-2">
+                        <label for="time-material" class="text-gray-700 font-bold">TIME & MATERIAL</label>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2" for="group-billed">
+                        GROUP TO BE BILLED:
+                    </label>
+                    <input
+                        class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="group-billed" type="text">
+                </div>
+            </div>
+
+            <!-- Date and Contractor Information -->
+            <div class="form-section">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2" for="date">
+                            DATE (mm/dd/yyyy):
+                        </label>
+                        <input
+                            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="date" type="date">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2" for="sub-contractor">
+                            SUB-CONTRACTOR:
+                        </label>
+                        <input
+                            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="sub-contractor" type="text">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2" for="owner-name">
+                            OWNER NAME:
+                        </label>
+                        <input
+                            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="owner-name" type="text">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2" for="owner-address">
+                            OWNER ADDRESS:
+                        </label>
+                        <input
+                            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="owner-address" type="text">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2" for="prime-contractor">
+                            PRIME CONTRACTOR:
+                        </label>
+                        <input
+                            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="prime-contractor" type="text">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2" for="contractor-po">
+                            CONTRACTOR P.O# AND/OR JOB #:
+                        </label>
+                        <input
+                            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="contractor-po" type="text">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Management -->
+            <div class="form-section">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2" for="foreman">
+                            FOREMAN IN CHARGE OF PROJECT / CELL:
+                        </label>
+                        <input
+                            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="foreman" type="text">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2" for="consulting-firm">
+                            CONSULTING FIRM:
+                        </label>
+                        <input
+                            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="consulting-firm" type="text">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2" for="workers">
+                            NUMBER OF WORKERS PER SHIFT:
+                        </label>
+                        <input
+                            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="workers" type="number">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">
+                            HOURS OF WORK:
+                        </label>
+                        <div class="flex">
+                            <div class="mr-2 flex-1">
+                                <label class="block text-gray-700 text-sm mb-1" for="work-from">
+                                    FROM:
+                                </label>
+                                <input
+                                    class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    id="work-from" type="time">
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-gray-700 text-sm mb-1" for="work-to">
+                                    TO:
+                                </label>
+                                <input
+                                    class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    id="work-to" type="time">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Building Information -->
+            <div class="form-section">
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-bold mb-2" for="building-structure">
+                        BUILDING OR STRUCTURE CONTAINING MATERIAL:
+                    </label>
+                    <input
+                        class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="building-structure" type="text">
+                </div>
+
+                <div class="mb-4">
+                    <div class="text-gray-700 font-bold mb-2">TYPE OF PROJECT:</div>
+                    <div class="flex flex-wrap gap-4">
+                        <div>
+                            <input type="checkbox" id="demolition" class="mr-2">
+                            <label for="demolition">Demolition</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="repair" class="mr-2">
+                            <label for="repair">Repair</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="dismantlement" class="mr-2">
+                            <label for="dismantlement">Dismantlement</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="renovation" class="mr-2">
+                            <label for="renovation">Renovation</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="text-gray-700 font-bold mb-2">BUILDING MATERIALS CONTAINING MATERIAL INVOLVING:</div>
+                    <div class="flex flex-wrap gap-4">
+                        <div>
+                            <input type="checkbox" id="removal" class="mr-2">
+                            <label for="removal">Removal</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="encapsulation" class="mr-2">
+                            <label for="encapsulation">Encapsulation</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="enclosure" class="mr-2">
+                            <label for="enclosure">Enclosure</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Timeline -->
+            <div class="form-section">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2" for="start-date">
+                            START DATE:
+                        </label>
+                        <input
+                            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="start-date" type="date">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2" for="duration">
+                            DURATION:
+                        </label>
+                        <input
+                            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="duration" type="text">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bulk Samples -->
+            <div class="form-section">
+                <div class="text-gray-700 font-bold mb-2">BULK SAMPLES ATTACHED?</div>
+                <div class="flex flex-wrap gap-4">
+                    <div>
+                        <input type="radio" id="samples-yes" name="bulk-samples" class="mr-2">
+                        <label for="samples-yes">YES</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="samples-no" name="bulk-samples" class="mr-2">
+                        <label for="samples-no">NO</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warehouse Notes -->
+            <div class="form-section">
+                <label class="block text-gray-700 font-bold mb-2" for="warehouse-notes">
+                    WAREHOUSE NOTES AND EQUIPMENT:
+                </label>
+                <textarea
+                    class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="warehouse-notes" rows="3"></textarea>
+            </div>
+
+            <!-- Vaccine -->
+            <div class="form-section">
+                <label class="block text-gray-700 font-bold mb-2" for="vaccine">
+                    VACCINE?
+                </label>
+                <div class="flex flex-wrap gap-4">
+                    <div>
+                        <input type="radio" id="vaccine-yes" name="vaccine" class="mr-2">
+                        <label for="vaccine-yes">YES</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="vaccine-no" name="vaccine" class="mr-2">
+                        <label for="vaccine-no">NO</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Safety Analysis Section -->
+            <div class="form-section">
+                <div class="section-header">
+                    <h2 class="text-xl font-bold">JOB SAFETY ANALYSIS & RISK ASSESSMENT</h2>
+                    <div class="text-sm">Development Date: November 4, 2011 | Revision Date: April 27, 2021</div>
+                </div>
+
+                <!-- Electrical Safety -->
+                <div class="mb-6">
+                    <div class="font-bold text-lg mb-2">ELECTRICAL SAFETY ARRANGEMENTS</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <div class="font-bold mb-1">GFCI required?</div>
+                            <div class="flex gap-4">
+                                <div>
+                                    <input type="radio" id="gfci-yes" name="gfci" class="mr-1">
+                                    <label for="gfci-yes">YES</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="gfci-no" name="gfci" class="mr-1">
+                                    <label for="gfci-no">NO</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">Cable/Wire/Cord Routing Required?</div>
+                            <div class="flex gap-4">
+                                <div>
+                                    <input type="radio" id="cable-yes" name="cable" class="mr-1">
+                                    <label for="cable-yes">YES</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="cable-no" name="cable" class="mr-1">
+                                    <label for="cable-no">NO</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">Power Source Lock/Tag Out Required?</div>
+                            <div class="flex gap-4">
+                                <div>
+                                    <input type="radio" id="power-yes" name="power" class="mr-1">
+                                    <label for="power-yes">YES</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="power-no" name="power" class="mr-1">
+                                    <label for="power-no">NO</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">Proper Lighting Required?</div>
+                            <div class="flex gap-4">
+                                <div>
+                                    <input type="radio" id="lighting-yes" name="lighting" class="mr-1">
+                                    <label for="lighting-yes">YES</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="lighting-no" name="lighting" class="mr-1">
+                                    <label for="lighting-no">NO</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Site Hazards -->
+                <div class="mb-6">
+                    <div class="font-bold text-lg mb-2">IDENTIFIED SITE HAZARDS</div>
+                    <div class="text-sm mb-2 italic">(NOTE: If a "YES" is indicated, a separate Risk Assessment may be
+                        required for effective worker protection)</div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                            <div class="font-bold mb-1">Heat Stress:</div>
+                            <div class="flex gap-4">
+                                <div>
+                                    <input type="radio" id="heat-yes" name="heat" class="mr-1">
+                                    <label for="heat-yes">YES</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="heat-no" name="heat" class="mr-1">
+                                    <label for="heat-no">NO</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">Hot Objects:</div>
+                            <div class="flex gap-4">
+                                <div>
+                                    <input type="radio" id="hot-objects-yes" name="hot-objects" class="mr-1">
+                                    <label for="hot-objects-yes">YES</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="hot-objects-no" name="hot-objects" class="mr-1">
+                                    <label for="hot-objects-no">NO</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">Extreme Weather:</div>
+                            <div class="flex gap-4">
+                                <div>
+                                    <input type="radio" id="weather-yes" name="weather" class="mr-1">
+                                    <label for="weather-yes">YES</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="weather-no" name="weather" class="mr-1">
+                                    <label for="weather-no">NO</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">Moving Equipment:</div>
+                            <div class="flex gap-4">
+                                <div>
+                                    <input type="radio" id="equipment-yes" name="equipment" class="mr-1">
+                                    <label for="equipment-yes">YES</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="equipment-no" name="equipment" class="mr-1">
+                                    <label for="equipment-no">NO</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">High Noise Levels:</div>
+                            <div class="flex gap-4">
+                                <div>
+                                    <input type="radio" id="noise-yes" name="noise" class="mr-1">
+                                    <label for="noise-yes">YES</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="noise-no" name="noise" class="mr-1">
+                                    <label for="noise-no">NO</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">Controlled Products:</div>
+                            <div class="flex gap-4">
+                                <div>
+                                    <input type="radio" id="controlled-yes" name="controlled" class="mr-1">
+                                    <label for="controlled-yes">YES</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="controlled-no" name="controlled" class="mr-1">
+                                    <label for="controlled-no">NO</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">Floor Openings:</div>
+                            <div class="flex gap-4">
+                                <div>
+                                    <input type="radio" id="floor-yes" name="floor" class="mr-1">
+                                    <label for="floor-yes">YES</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="floor-no" name="floor" class="mr-1">
+                                    <label for="floor-no">NO</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">Ladders:</div>
+                            <div class="flex gap-4">
+                                <div>
+                                    <input type="radio" id="ladders-yes" name="ladders" class="mr-1">
+                                    <label for="ladders-yes">YES</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="ladders-no" name="ladders" class="mr-1">
+                                    <label for="ladders-no">NO</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">Cold Stress:</div>
+                            <div class="flex gap-4">
+                                <div>
+                                    <input type="radio" id="cold-yes" name="cold" class="mr-1">
+                                    <label for="cold-yes">YES</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="cold-no" name="cold" class="mr-1">
+                                    <label for="cold-no">NO</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">Poor Housekeeping:</div>
+                            <div class="flex gap-4">
+                                <div>
+                                    <input type="radio" id="housekeeping-yes" name="housekeeping" class="mr-1">
+                                    <label for="housekeeping-yes">YES</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="housekeeping-no" name="housekeeping" class="mr-1">
+                                    <label for="housekeeping-no">NO</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">Access/Egress:</div>
+                            <div class="flex gap-4">
+                                <div>
+                                    <input type="radio" id="access-yes" name="access" class="mr-1">
+                                    <label for="access-yes">YES</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="access-no" name="access" class="mr-1">
+                                    <label for="access-no">NO</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">Gas Cylinders:</div>
+                            <div class="flex gap-4">
+                                <div>
+                                    <input type="radio" id="gas-yes" name="gas" class="mr-1">
+                                    <label for="gas-yes">YES</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="gas-no" name="gas" class="mr-1">
+                                    <label for="gas-no">NO</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="block text-gray-700 font-bold mb-2" for="additional-hazards">
+                            Additional Hazards:
+                        </label>
+                        <textarea
+                            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="additional-hazards" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <!-- Hazardous Materials Section -->
+                <div class="mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <div class="font-bold mb-1">Other Hazardous Materials?</div>
+                            <div class="flex gap-4">
+                                <div>
+                                    <input type="radio" id="hazmat-yes" name="hazmat" class="mr-1">
+                                    <label for="hazmat-yes">YES</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="hazmat-no" name="hazmat" class="mr-1">
+                                    <label for="hazmat-no">NO</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">Hazardous Waste(s):</div>
+                            <div class="flex gap-4">
+                                <div>
+                                    <input type="radio" id="hazwaste-yes" name="hazwaste" class="mr-1">
+                                    <label for="hazwaste-yes">YES</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="hazwaste-no" name="hazwaste" class="mr-1">
+                                    <label for="hazwaste-no">NO</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-bold mb-1">Require authority approval for disposal?</div>
+                            <div class="flex gap-4">
+                                <div>
+                                    <input type="radio" id="approval-yes" name="approval" class="mr-1">
+                                    <label for="approval-yes">YES</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="approval-no" name="approval" class="mr-1">
+                                    <label for="approval-no">NO</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <label class="block text-gray-700 font-bold mb-2" for="bcg-number">
+                            BCG Number:
+                        </label>
+                        <input
+                            class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="bcg-number" type="text">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</body>
