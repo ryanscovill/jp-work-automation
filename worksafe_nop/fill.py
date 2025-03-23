@@ -34,9 +34,10 @@ def fill_form(page: Page, page_name: str, mappings, data):
 
         if data_key in data:
             value = data[data_key]
-            fill_element(page, field_id, value, data_key, field_type)
-            # Small pause between field interactions
-            page.wait_for_timeout(100)
+            if value:
+                fill_element(page, field_id, value, data_key, field_type)
+                # Small pause between field interactions
+                page.wait_for_timeout(100)
 
 def fill_element(page: Page, field_id: str, value: str, data_key: str, field_type: str):
     """Fill a form element using the appropriate method based on field type."""
