@@ -1,4 +1,33 @@
 {
+  "transformations": {
+    "RISK_CALC": {
+      "type": "map",
+      "values": {
+        "High": "RiskCalcHigh",
+        "Moderate": "RiskCalcMod",
+        "Low": "RiskCalcLow"
+      }
+    },
+    "DURATION": {
+      "type": "composite",
+      "components": {
+        "DURATION_HOURS": {},
+        "DURATION_DAYS": {},
+        "DURATION_MONTHS": {},
+        "DURATION_YEARS": {}
+      }
+    },
+    "DURATION_UNIT": {
+      "type": "dynamic",
+      "source_fields": ["DURATION_HOURS", "DURATION_DAYS", "DURATION_MONTHS", "DURATION_YEARS"],
+      "value_map": {
+        "DURATION_HOURS": "hours",
+        "DURATION_DAYS": "days",
+        "DURATION_MONTHS": "months",
+        "DURATION_YEARS": "years"
+      }
+    }
+  },
   "pages": [
     {
       "general information": {
