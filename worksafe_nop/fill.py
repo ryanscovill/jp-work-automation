@@ -33,40 +33,18 @@ def apply_transformations(data_key, value, transformations, data):
         return mapping.get(value, value)  # Return original if no mapping found
     
     elif transform_type == "dynamic":
-        # Dynamic transformation based on which source field has a value
         source_fields = transform.get("source_fields", [])
         value_map = transform.get("value_map", {})
         
         for field in source_fields:
             if field in data and data[field]:
-                # Return the mapped value for the first non-empty field
-                return value_map.get(field, "")
+                if value_map:
+                    return value_map.get(field, "")
+                else:
+                    return data[field]
     
     # Add other transformation types as needed
     return value
-
-
-def handle_composite_fields(data, transformations):
-    """Handle composite fields and return processed data."""
-    processed_data = data.copy()
-    
-    # Process all composite transformations
-    for field_key, transform in transformations.items():
-        if transform.get("type") == "composite":
-            components = transform.get("components", {})
-            
-            for component_key, config in components.items():
-                if component_key in data and data[component_key]:
-                    # Found a populated component field
-                    try:
-                        component_value = float(data[component_key])
-                        if component_value and component_value > 0:
-                            processed_data[field_key] = component_value
-                            break  # Use the first non-zero field found
-                    except (ValueError, TypeError):
-                        pass
-
-    return processed_data
 
 
 def fill_form(page: Page, page_name: str, mappings, data):
@@ -89,28 +67,21 @@ def fill_form(page: Page, page_name: str, mappings, data):
     
     # Get transformations from mappings
     transformations = mappings.get("transformations", {})
-    
-    # Handle special case for composite fields
-    processed_data = handle_composite_fields(data, transformations)
 
     # Fill each field based on the mapping
     for field_id, field_config in page_mapping.items():
         data_key = field_config["data_key"]
         field_type = field_config["type"]
 
-        if data_key in processed_data or data_key in transformations:
-            # For regular fields
-            value = processed_data.get(data_key, "")
+        value = data.get(data_key, "") if data_key else ""
             
-            # Only process if value exists or if it needs a transformation
-            if value or data_key in transformations:
-                # Apply any transformations defined for this field
-                transformed_value = apply_transformations(data_key, value, transformations, data)
-                
-                if transformed_value:
-                    fill_element(page, field_id, transformed_value, data_key, field_type)
-                    # Small pause between field interactions
-                    page.wait_for_timeout(Settings.FIELD_INTERACTION_DELAY)
+        if value or data_key in transformations:
+            transformed_value = apply_transformations(data_key, value, transformations, data)
+            
+            if transformed_value:
+                fill_element(page, field_id, transformed_value, data_key, field_type)
+                # Small pause between field interactions
+                page.wait_for_timeout(Settings.FIELD_INTERACTION_DELAY)
 
 
 def fill_element(page: Page, field_id: str, value: str, data_key: str, field_type: str):

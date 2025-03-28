@@ -8,23 +8,18 @@
         "Low": "RiskCalcLow"
       }
     },
-    "DURATION": {
-      "type": "composite",
-      "components": {
-        "DURATION_HOURS": {},
-        "DURATION_DAYS": {},
-        "DURATION_MONTHS": {},
-        "DURATION_YEARS": {}
-      }
+    "_DURATION_TIME": {
+      "type": "dynamic",
+      "source_fields": ["DURATION_HOURS", "DURATION_DAYS", "DURATION_MONTHS", "DURATION_YEARS"]
     },
     "DURATION_UNIT": {
       "type": "dynamic",
       "source_fields": ["DURATION_HOURS", "DURATION_DAYS", "DURATION_MONTHS", "DURATION_YEARS"],
       "value_map": {
-        "DURATION_HOURS": "hours",
-        "DURATION_DAYS": "days",
-        "DURATION_MONTHS": "months",
-        "DURATION_YEARS": "years"
+        "DURATION_HOURS": "Hours",
+        "DURATION_DAYS": "Days",
+        "DURATION_MONTHS": "Months",
+        "DURATION_YEARS": "Years"
       }
     }
   },
@@ -69,7 +64,7 @@
         },
         "durationTime": {
           "type": "number",
-          "data_key": "DURATION"
+          "data_key": "_DURATION_TIME"
         },
         "durationUnit": {
           "type": "select",
