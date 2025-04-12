@@ -5,3 +5,4 @@ venv
 build
 ignore
 dist/
+__pycache__/
