@@ -7,3 +7,4 @@ ignore
 .idea
 .DS_Store
 __pycache__
+dist/
