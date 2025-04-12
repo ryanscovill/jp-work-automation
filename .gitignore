@@ -4,5 +4,7 @@ venv
 .env
 build
 ignore
+.idea
+.DS_Store
+__pycache__
 dist/
-__pycache__/
