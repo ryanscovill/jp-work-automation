@@ -1,5 +1,5 @@
 from playwright.sync_api import Page
-from worksafe_nop.settings import Settings
+from procedure_generator.worksafe_nop.settings import Settings
 
 
 def handle_dropdown(page: Page, selector: str, value: str):

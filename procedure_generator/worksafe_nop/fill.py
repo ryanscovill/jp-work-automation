@@ -4,13 +4,13 @@ import time
 import argparse
 from playwright.sync_api import sync_playwright, Page
 
-from worksafe_nop.handlers import (
+from procedure_generator.worksafe_nop.handlers import (
     handle_address,
     handle_checkbox,
     handle_dropdown,
     handle_radio_button,
 )
-from worksafe_nop.settings import Settings
+from procedure_generator.worksafe_nop.settings import Settings
 
 
 def load_json_file(filename):
@@ -338,26 +338,16 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
             # Don't break the loop on transient errors
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Fill WorkSafeBC forms automatically")
-    parser.add_argument(
-        "--page",
-        default="general-information",
-        help="Starting page name (default: general-information)",
-    )
-    parser.add_argument(
-        "--headless", action="store_true", help="Run in headless mode (default: false)"
-    )
-    args = parser.parse_args()
-
+def fill_nop(start_page="general-information"):
     # Load data and mappings
     script_dir = os.path.dirname(os.path.abspath(__file__))
     data = load_json_file(os.path.join(script_dir, "data.json"))
     mappings = load_json_file(os.path.join(script_dir, "mappings.json"))
+    headless = False
 
     with sync_playwright() as playwright:
         # Launch browser with specified options
-        browser = playwright.chromium.launch(headless=args.headless)
+        browser = playwright.chromium.launch(headless=False)
 
         # Create a new browser context with viewport and device options
         context = browser.new_context(
@@ -370,11 +360,11 @@ def main():
 
         try:
             # Open the website with the specified page
-            url = f"{Settings.URL}{args.page}"
+            url = f"{Settings.URL}{start_page}"
             page.goto(url)
 
             # Monitor for navigation to other pages
-            monitor_navigation(page, args.page, mappings, data)
+            monitor_navigation(page, start_page, mappings, data)
 
             # Wait for user to close browser manually
             print("Form filling complete. Press Ctrl+C to exit.")
@@ -386,11 +376,11 @@ def main():
         except Exception as e:
             print(f"Error: {e}")
         finally:
-            if not args.headless:
+            if not headless:
                 input("Press Enter to close the browser...")
             context.close()
             browser.close()
 
 
 if __name__ == "__main__":
-    main()
+    fill_nop()
