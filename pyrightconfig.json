@@ -11,11 +11,15 @@
         ".venv",
         "procedure_generator/build",
         "procedure_generator/hooks/__pycache__",
-        "procedure_generator/worksafe_nop/__pycache__"
+        "procedure_generator/worksafe_nop/__pycache__",
+        "**/build/**",
+        "**/dist/**"
     ],
     "ignore": [
         "procedure_generator/build/**",
-        "**/__pycache__/**"
+        "**/__pycache__/**",
+        "**/build/**",
+        "**/dist/**"
     ],
     "defineConstant": {},
     "typeCheckingMode": "basic",
@@ -25,5 +29,7 @@
     "reportMissingImports": true,
     "reportMissingTypeStubs": false,
     "pythonVersion": "3.13",
-    "pythonPlatform": "Windows"
+    "pythonPlatform": "Windows",
+    "autoSearchPaths": true,
+    "useLibraryCodeForTypes": true
 }

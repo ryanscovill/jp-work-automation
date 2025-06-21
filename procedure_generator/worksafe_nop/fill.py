@@ -1,6 +1,7 @@
 import json
 import os
 import time
+import sys
 import argparse
 from playwright.sync_api import sync_playwright, Page
 
@@ -11,6 +12,8 @@ from .handlers import (
     handle_radio_button,
 )
 from .settings import Settings
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from config_loader import config
 
 
 def load_json_file(filename):
@@ -49,12 +52,9 @@ def apply_transformations(data_key, value, transformations, data):
 
 def fill_form(page: Page, page_name: str, mappings, data):
     """Fill form fields based on mappings."""
-    # Get NOP mappings
-    nop_mappings = mappings.get("NOP", {})
-    
     # Find the correct page mapping
     page_mapping = None
-    for p in nop_mappings.get("pages", []):
+    for p in mappings.get("pages", []):
         if page_name in p:
             page_mapping = p[page_name]
             break
@@ -69,7 +69,7 @@ def fill_form(page: Page, page_name: str, mappings, data):
     page.wait_for_load_state("networkidle")
     
     # Get transformations from mappings
-    transformations = nop_mappings.get("transformations", {})
+    transformations = mappings.get("transformations", {})
 
     # Fill each field based on the mapping
     for field_id, field_config in page_mapping.items():
@@ -223,8 +223,7 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
                 print(f"Detected page title: {page_title}")
 
                 # Match against our known pages
-                nop_mappings = mappings.get("NOP", {})
-                for page_data in nop_mappings.get("pages", []):
+                for page_data in mappings.get("pages", []):
                     page_name = list(page_data.keys())[0]
                     if page_name.lower() in page_title or page_title in page_name.lower():
                         return page_name
@@ -353,16 +352,14 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
             continue
 
 
-def fill_nop(data_file=None, mappings_file=None):
+def fill_nop(data_file=None):
     start_page = "general-information"
 
     if data_file is None:
         raise ValueError("data_file must be provided")
-    if mappings_file is None:
-        raise ValueError("mappings_file must be provided")
     
     data = load_json_file(data_file)
-    mappings = load_json_file(mappings_file)
+    mappings = config.get_nop_config()
 
     with sync_playwright() as playwright:
         # Launch browser with specified options
@@ -400,4 +397,24 @@ def fill_nop(data_file=None, mappings_file=None):
 
 
 if __name__ == "__main__":
-    fill_nop()
+    # Command line argument parsing
+    parser = argparse.ArgumentParser(description="Fill WorkSafe BC NOP forms automatically using data from a JSON file.")
+    
+    parser.add_argument(
+        "data_file",
+        help="Path to the JSON data file to be used for filling the form"
+    )
+
+    args = parser.parse_args()
+
+    try:
+        fill_nop(data_file=args.data_file)
+    except FileNotFoundError as e:
+        print(f"Error: Could not find data file '{args.data_file}': {e}")
+        sys.exit(1)
+    except ValueError as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        sys.exit(1)
