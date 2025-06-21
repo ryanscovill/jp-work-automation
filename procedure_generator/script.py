@@ -9,16 +9,7 @@ import codecs
 from gooey import Gooey, GooeyParser
 import fitz
 from procedure_generator.worksafe_nop.fill import fill_nop
-from procedure_generator.config_loader import (
-    config,
-    get_default_template_folder,
-    get_default_work_procedure_folder,
-    get_template_select_field,
-    get_work_procedure_select_field,
-    get_work_procedure_select_all_field,
-    get_work_procedure_text_field,
-    get_num_work_procedure_fields
-)
+from procedure_generator.config_loader import config
 
 
 # Handle encodings
@@ -28,15 +19,15 @@ if sys.stderr.encoding != "UTF-8":
     sys.stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, "strict")
 
 # Load configuration values
-default_template_folder = get_default_template_folder()
-default_work_procedure_folder = get_default_work_procedure_folder()
+default_template_folder = config.paths.default_template_folder
+default_work_procedure_folder = config.paths.default_work_procedure_folder
 
 # Field configuration
-template_select_field = get_template_select_field()
-work_procedure_select_field = get_work_procedure_select_field()
-work_procedure_select_all_field = get_work_procedure_select_all_field()
-work_procedure_text_field = get_work_procedure_text_field()
-num_work_procedure_fields = get_num_work_procedure_fields()
+template_select_field = config.field_names.template_select_field
+work_procedure_select_field = config.field_names.work_procedure_select_field
+work_procedure_select_all_field = config.field_names.work_procedure_select_all_field
+work_procedure_text_field = config.field_names.work_procedure_text_field
+num_work_procedure_fields = config.field_names.num_work_procedure_fields
 
 
 # Extracts the data from a pdf into a dictionary

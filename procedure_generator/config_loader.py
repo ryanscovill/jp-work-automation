@@ -3,6 +3,20 @@ import sys
 import yaml
 from typing import Any, Dict, Optional
 
+class ConfigSection:
+    """Helper class to provide dot notation access to configuration sections"""
+    def __init__(self, config_dict: Dict[str, Any], defaults: Optional[Dict[str, Any]] = None):
+        self._config = config_dict
+        self._defaults = defaults or {}
+        
+    def __getattr__(self, name: str) -> Any:
+        if name in self._config:
+            return self._config[name]
+        elif name in self._defaults:
+            return self._defaults[name]
+        else:
+            raise AttributeError(f"Configuration key '{name}' not found")
+
 class ConfigLoader:
     _instance: Optional['ConfigLoader'] = None
     _config: Optional[Dict[str, Any]] = None
@@ -11,7 +25,55 @@ class ConfigLoader:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._load_config(config_file)
+            cls._instance._setup_sections()
         return cls._instance
+    
+    def _setup_sections(self) -> None:
+        """Setup configuration sections with defaults"""
+        if self._config is None:
+            return
+            
+        # Define defaults for each section
+        path_defaults = {
+            "default_template_folder": "",
+            "default_work_procedure_folder": "",
+            "browser_path": ""
+        }
+        
+        field_name_defaults = {
+            "template_select_field": "TEMPLATE_SELECT",
+            "work_procedure_select_field": "WORK_PROCEDURE_SELECTX",
+            "work_procedure_select_all_field": "WORK_PROCEDURE_SELECT_ALL",
+            "work_procedure_text_field": "SWPX",
+            "num_work_procedure_fields": 12
+        }
+        
+        timeout_defaults = {
+            "field_interaction_delay": 50,
+            "short_timeout": 300,
+            "standard_timeout": 1000,
+            "navigation_timeout": 500,
+            "content_change_threshold": 500,
+            "next_button_check_interval": 5,
+            "periodic_page_check_interval": 10
+        }
+        
+        ui_defaults = {
+            "viewport_width": 1400,
+            "viewport_height": 900
+        }
+        
+        worksafe_bc_defaults = {
+            "url": "https://prevnop.online.worksafebc.com/"
+        }
+        
+        # Create ConfigSection instances with defaults
+        self.paths = ConfigSection(self._config.get("paths", {}), path_defaults)
+        self.field_names = ConfigSection(self._config.get("field_names", {}), field_name_defaults)
+        self.timeouts = ConfigSection(self._config.get("timeouts", {}), timeout_defaults)
+        self.ui_settings = ConfigSection(self._config.get("ui_settings", {}), ui_defaults)
+        self.worksafe_bc = ConfigSection(self._config.get("worksafe_bc", {}), worksafe_bc_defaults)
+        self.nop = ConfigSection(self._config.get("NOP", {}))
     
     def _load_config(self, config_file: str) -> None:
         # Determine the directory of the executable
@@ -71,75 +133,6 @@ class ConfigLoader:
     
     def reload(self, config_file: str = "swp_config.yaml") -> None:
         self._load_config(config_file)
-
-
+        self._setup_sections()
+        
 config = ConfigLoader()
-
-
-def get_default_template_folder() -> str:
-    return config.get("paths.default_template_folder", "")
-
-def get_default_work_procedure_folder() -> str:
-    return config.get("paths.default_work_procedure_folder", "")
-
-def get_browser_path() -> str:
-    return config.get("paths.browser_path", "")
-
-def get_worksafe_bc_url() -> str:
-    return config.get("worksafe_bc.url", "")
-
-def get_template_select_field() -> str:
-    return config.get("field_names.template_select_field", "TEMPLATE_SELECT")
-
-def get_work_procedure_select_field() -> str:
-    return config.get("field_names.work_procedure_select_field", "WORK_PROCEDURE_SELECTX")
-
-def get_work_procedure_select_all_field() -> str:
-    return config.get("field_names.work_procedure_select_all_field", "WORK_PROCEDURE_SELECT_ALL")
-
-def get_work_procedure_text_field() -> str:
-    return config.get("field_names.work_procedure_text_field", "SWPX")
-
-def get_num_work_procedure_fields() -> int:
-    return config.get("field_names.num_work_procedure_fields", 12)
-
-# WorkSafe NOP specific convenience functions
-def get_worksafe_nop_url() -> str:
-    """Get WorkSafe BC Notice of Project URL"""
-    return config.get("worksafe_bc.url", "https://prevnop.online.worksafebc.com/")
-
-def get_field_interaction_delay() -> int:
-    """Get delay between field interactions in milliseconds"""
-    return config.get("timeouts.field_interaction_delay", 50)
-
-def get_short_timeout() -> int:
-    """Get short timeout for quick operations in milliseconds"""
-    return config.get("timeouts.short_timeout", 300)
-
-def get_standard_timeout() -> int:
-    """Get standard timeout for operations in milliseconds"""
-    return config.get("timeouts.standard_timeout", 1000)
-
-def get_navigation_timeout() -> int:
-    """Get timeout after navigation in milliseconds"""
-    return config.get("timeouts.navigation_timeout", 500)
-
-def get_content_change_threshold() -> int:
-    """Get threshold to detect significant DOM changes"""
-    return config.get("timeouts.content_change_threshold", 500)
-
-def get_next_button_check_interval() -> int:
-    """Get interval for checking next button availability in seconds"""
-    return config.get("timeouts.next_button_check_interval", 5)
-
-def get_periodic_page_check_interval() -> int:
-    """Get interval for periodic page checks in seconds"""
-    return config.get("timeouts.periodic_page_check_interval", 10)
-
-def get_viewport_width() -> int:
-    """Get browser viewport width"""
-    return config.get("ui_settings.viewport_width", 1400)
-
-def get_viewport_height() -> int:
-    """Get browser viewport height"""
-    return config.get("ui_settings.viewport_height", 900)

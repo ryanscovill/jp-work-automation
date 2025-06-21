@@ -35,9 +35,12 @@ To modify default paths or settings, edit the `swp_config.json` file. The applic
 In code, use the `config_loader` module:
 
 ```python
-from config_loader import config, get_default_template_folder
+from config_loader import config
 
-# Get specific values
-template_folder = get_default_template_folder()
+# Get specific values using dot notation
+template_folder = config.paths.default_template_folder
+timeout = config.timeouts.standard_timeout
+
+# Or use the get method for nested keys (with defaults)
 timeout = config.get("timeouts.standard_timeout", 1000)
 ```
