@@ -102,3 +102,44 @@ def get_work_procedure_text_field() -> str:
 
 def get_num_work_procedure_fields() -> int:
     return config.get("field_names.num_work_procedure_fields", 12)
+
+# WorkSafe NOP specific convenience functions
+def get_worksafe_nop_url() -> str:
+    """Get WorkSafe BC Notice of Project URL"""
+    return config.get("worksafe_bc.url", "https://prevnop.online.worksafebc.com/")
+
+def get_field_interaction_delay() -> int:
+    """Get delay between field interactions in milliseconds"""
+    return config.get("timeouts.field_interaction_delay", 50)
+
+def get_short_timeout() -> int:
+    """Get short timeout for quick operations in milliseconds"""
+    return config.get("timeouts.short_timeout", 300)
+
+def get_standard_timeout() -> int:
+    """Get standard timeout for operations in milliseconds"""
+    return config.get("timeouts.standard_timeout", 1000)
+
+def get_navigation_timeout() -> int:
+    """Get timeout after navigation in milliseconds"""
+    return config.get("timeouts.navigation_timeout", 500)
+
+def get_content_change_threshold() -> int:
+    """Get threshold to detect significant DOM changes"""
+    return config.get("timeouts.content_change_threshold", 500)
+
+def get_next_button_check_interval() -> int:
+    """Get interval for checking next button availability in seconds"""
+    return config.get("timeouts.next_button_check_interval", 5)
+
+def get_periodic_page_check_interval() -> int:
+    """Get interval for periodic page checks in seconds"""
+    return config.get("timeouts.periodic_page_check_interval", 10)
+
+def get_viewport_width() -> int:
+    """Get browser viewport width"""
+    return config.get("ui_settings.viewport_width", 1400)
+
+def get_viewport_height() -> int:
+    """Get browser viewport height"""
+    return config.get("ui_settings.viewport_height", 900)

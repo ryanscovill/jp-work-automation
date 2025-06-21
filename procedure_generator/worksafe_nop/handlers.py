@@ -1,5 +1,7 @@
 from playwright.sync_api import Page
-from .settings import Settings
+from ..config_loader import (
+    get_short_timeout, get_standard_timeout
+)
 
 
 def handle_dropdown(page: Page, selector: str, value: str):
@@ -83,7 +85,7 @@ def handle_radio_button(page: Page, selector: str, value: str):
 
                 try:
                     # Try clicking the span first
-                    if page.is_visible(span_selector, timeout=Settings.SHORT_TIMEOUT):
+                    if page.is_visible(span_selector, timeout=get_short_timeout()):
                         page.click(span_selector)
                         print(f"Clicked radio span: {span_selector}")
                     # If not, click the input directly
@@ -97,7 +99,7 @@ def handle_radio_button(page: Page, selector: str, value: str):
                     # Try clicking the label if span/input clicks failed
                     try:
                         label_selector = f'label[for="{radio_id}"]'
-                        if page.is_visible(label_selector, timeout=Settings.SHORT_TIMEOUT):
+                        if page.is_visible(label_selector, timeout=get_short_timeout()):
                             page.click(label_selector)
                             print(f"Clicked radio label: {label_selector}")
                             return
@@ -138,7 +140,7 @@ def handle_checkbox(page: Page, selector: str, value: str):
         try:
             is_checked = page.is_checked(selector)
             if is_checked != should_check:
-                page.click(selector, timeout=Settings.SHORT_TIMEOUT)
+                page.click(selector, timeout=get_short_timeout())
                 print(f"Clicked checkbox {selector} directly")
                 return
         except Exception as e:
@@ -185,7 +187,7 @@ def handle_address(page: Page, selector: str, value: str):
     page.fill(selector, value)
 
     # Wait for autocomplete suggestions to appear
-    page.wait_for_timeout(Settings.STANDARD_TIMEOUT)
+    page.wait_for_timeout(get_standard_timeout())
 
     # Try to select the first Google Maps autocomplete suggestion
     try:
@@ -198,7 +200,7 @@ def handle_address(page: Page, selector: str, value: str):
         ]
 
         for suggestion_selector in suggestion_selectors:
-            if page.is_visible(suggestion_selector, timeout=Settings.SHORT_TIMEOUT):
+            if page.is_visible(suggestion_selector, timeout=get_short_timeout()):
                 page.click(suggestion_selector)
                 print(f"Selected address from Google autocomplete using: {suggestion_selector}")
                 break

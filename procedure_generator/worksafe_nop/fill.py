@@ -11,7 +11,11 @@ from .handlers import (
     handle_dropdown,
     handle_radio_button,
 )
-from .settings import Settings
+from ..config_loader import (
+    get_field_interaction_delay, get_navigation_timeout, get_content_change_threshold,
+    get_standard_timeout, get_next_button_check_interval, get_periodic_page_check_interval,
+    get_browser_path, get_viewport_width, get_viewport_height, get_worksafe_nop_url
+)
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from config_loader import config
 
@@ -84,7 +88,7 @@ def fill_form(page: Page, page_name: str, mappings, data):
             if transformed_value:
                 fill_element(page, field_id, transformed_value, data_key, field_type)
                 # Small pause between field interactions
-                page.wait_for_timeout(Settings.FIELD_INTERACTION_DELAY)
+                page.wait_for_timeout(get_field_interaction_delay())
 
 
 def fill_element(page: Page, field_id: str, value: str, data_key: str, field_type: str):
@@ -257,14 +261,14 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
                 # Set up detection for the page change after click
                 def check_after_click():
                     page.wait_for_timeout(
-                        Settings.NAVIGATION_TIMEOUT
+                        get_navigation_timeout()
                     )  # Wait for Angular to update the view
                     new_content_size = page.evaluate("document.body.innerHTML.length")
 
                     # If content size changed significantly, likely a new page loaded
                     if (
                         abs(new_content_size - pre_click_content)
-                        > Settings.CONTENT_CHANGE_THRESHOLD
+                        > get_content_change_threshold()
                     ):
                         print("Content changed after button click - checking for new page")
                         new_page = detect_current_page()
@@ -296,7 +300,7 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
             if clicked_next:
                 page.evaluate("window._clickedNext = false")
                 print("Detected Next button click")
-                page.wait_for_timeout(Settings.NAVIGATION_TIMEOUT)  # Wait for Angular to update
+                page.wait_for_timeout(get_navigation_timeout())  # Wait for Angular to update
 
                 new_page = detect_current_page()
                 if new_page and new_page not in processed_pages:
@@ -311,7 +315,7 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
                 # print(f"Detected route changes: {route_changes}")
 
                 # Wait for Angular to finish rendering
-                page.wait_for_timeout(Settings.STANDARD_TIMEOUT)
+                page.wait_for_timeout(get_standard_timeout())
                 page.wait_for_load_state("networkidle")
 
                 new_page = detect_current_page()
@@ -321,11 +325,11 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
                     processed_pages.add(new_page)
 
             # Periodically check for Next button
-            if time.time() - last_check_time > Settings.NEXT_BUTTON_CHECK_INTERVAL:
+            if time.time() - last_check_time > get_next_button_check_interval():
                 checker_fn = watch_for_next_button()
                 if checker_fn:
                     last_check_time = time.time()            # Fallback: periodically check if page content changed substantially
-            if time.time() - last_check_time > Settings.PERIODIC_PAGE_CHECK_INTERVAL:
+            if time.time() - last_check_time > get_periodic_page_check_interval():
                 last_check_time = time.time()
                 new_page = detect_current_page()
                 if new_page and new_page not in processed_pages:
@@ -363,18 +367,18 @@ def fill_nop(data_file=None):
 
     with sync_playwright() as playwright:
         # Launch browser with specified options
-        browser = playwright.chromium.launch(executable_path=Settings.BROWSER_PATH, headless=False)
+        browser = playwright.chromium.launch(executable_path=get_browser_path(), headless=False)
 
         # Create a new browser context with viewport and device options
         context = browser.new_context(
-            viewport={"width": Settings.VIEWPORT_WIDTH, "height": Settings.VIEWPORT_HEIGHT},
+            viewport={"width": get_viewport_width(), "height": get_viewport_height()},
             accept_downloads=True,
         )        # Create a new page
         page = context.new_page()
 
         try:
             # Open the website with the specified page
-            url = f"{Settings.URL}{start_page}"
+            url = f"{get_worksafe_nop_url()}{start_page}"
             page.goto(url)
 
             # Monitor for navigation to other pages
