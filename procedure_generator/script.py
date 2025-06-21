@@ -24,8 +24,7 @@ default_template_folder = r"T:\Safe Work Procedures\SOP-SWP-RA-ECP - templates"
 default_work_procedure_folder = r"T:\Safe Work Procedures"
 
 # Default paths for NOP files
-default_nop_data_file = os.path.join(os.path.dirname(__file__), "worksafe_nop", "data.json")
-default_nop_mappings_file = os.path.join(os.path.dirname(__file__), "worksafe_nop", "mappings.json")
+default_nop_mappings_file = r"T:\procedure_generator_mappings.json"
 
 # The select field name to get the templates
 template_select_field = "TEMPLATE_SELECT"
@@ -445,7 +444,6 @@ def main():
         widget="FileChooser",
         gooey_options={"wildcard": "JSON files (*.json)|*.json", "full_width": True},
         help="The JSON file containing the form data",
-        default=default_nop_data_file,
         required=True,
     )
     fill_nop_group.add_argument(
