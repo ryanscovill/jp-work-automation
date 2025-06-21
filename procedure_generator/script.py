@@ -325,11 +325,10 @@ def update_master(source_pdf, template_folder, work_procedure_folder):
 
 
 def setDebug(args):
-    debug_paths = config.get_debug_paths()
     args.action = "Update_Master"
-    args.source_pdf = debug_paths.get("source_pdf", "")
-    args.template_folder = debug_paths.get("template_folder", "")
-    args.work_procedure_folder = debug_paths.get("work_procedure_folder", "")
+    args.source_pdf = config.debug_paths.source_pdf
+    args.template_folder = config.debug_paths.template_folder
+    args.work_procedure_folder = config.debug_paths.work_procedure_folder
     return args
 
 
@@ -337,7 +336,7 @@ def setDebug(args):
     program_name="Work Procedure PDF Generator",
     tabbed_groups=True,
     navigation="Tabbed",
-    default_size=tuple(config.get("ui_settings.default_window_size", [800, 600])),
+    default_size=tuple(config.ui_settings.default_window_size),
     menu=[
         {
             "name": "About",

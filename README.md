@@ -1,21 +1,13 @@
-## Procedure Generator
+# JP Work Automation
 
-Takes a work order and creates a safe work procedure PDF from a template and procedure documents.
+A comprehensive automation suite for workplace safety documentation and form filling processes. This project streamlines the creation and management of safety procedures and automates form submissions for WorkSafe BC Notice of Project (NOP) applications.
 
+## Overview
 
-## Worksafe NOP
+This automation toolkit consists of two main components:
 
-`python -m playwright install chromium`
+1. **Procedure Generator**: Automatically generates Safe Work Procedure (SWP) PDFs by combining work orders with standardized templates and procedure documents
+2. **WorkSafe NOP Automation**: Automates the filling of WorkSafe BC Notice of Project forms using web automation with Playwright
 
-## Configuration Management
+The system is designed to reduce manual work, improve consistency, and ensure compliance with safety documentation requirements.
 
-The project now uses a centralized configuration system with `swp_config.json` containing all hardcoded paths and settings. This improves maintainability and allows easy customization without code changes.
-
-### Key Configuration Sections:
-- **paths**: File system paths for templates, procedures, and executables
-- **debug_paths**: Development/testing specific paths
-- **timeouts**: Web automation timing configurations  
-- **ui_settings**: Application window and viewport settings
-- **field_names**: PDF form field identifiers
-- **worksafe_bc**: Service-specific configurations
-- **NOP**: Notice of Project form mappings
