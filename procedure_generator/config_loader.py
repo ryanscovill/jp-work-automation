@@ -52,6 +52,15 @@ class NOPConfig(BaseModel):
     pages: List[Dict[str, Any]] = Field(default_factory=list)
 
 
+class ExcelToPDFProcessingConfig(BaseModel):
+    default_sheet_name: str = ""
+
+
+class ExcelToPDFConfig(BaseModel):
+    field_mappings: Dict[str, str] = Field(default_factory=dict)
+    processing: ExcelToPDFProcessingConfig = Field(default_factory=ExcelToPDFProcessingConfig)
+
+
 class Config(BaseSettings):
     model_config = {"extra": "allow"}
     
@@ -62,6 +71,7 @@ class Config(BaseSettings):
     ui_settings: UISettingsConfig = Field(default_factory=UISettingsConfig)
     worksafe_bc: WorksafeBCConfig = Field(default_factory=WorksafeBCConfig)
     nop: NOPConfig = Field(default_factory=NOPConfig, alias="NOP")
+    excel_to_pdf: ExcelToPDFConfig = Field(default_factory=ExcelToPDFConfig, alias="EXCEL_TO_PDF")
 
     def __init__(self, **kwargs):
         # Load YAML config and merge with kwargs
