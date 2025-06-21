@@ -132,11 +132,11 @@ def main():
         gooey_options={'show_border': False, 'columns': 1}
     )
     fill_nop_options.add_argument(
-        "--data_file",
-        metavar="NOP PDF",
+        "--swp_data_file",
+        metavar="SWP PDF",
         widget="FileChooser",
         gooey_options={"wildcard": "PDF files (*.pdf)|*.pdf", "full_width": True},
-        help="The NOP PDF file",
+        help="The Safe Work Procedure PDF",
         required=True,
     )
 
@@ -190,7 +190,7 @@ def main():
         work_procedure_folder = args.work_procedure_folder
         update_master(source_pdf, template_folder, work_procedure_folder)
     elif args.action == "Fill_NOP":
-        data_file = args.data_file
+        data_file = args.swp_data_file
         fill_nop_from_pdf(data_file)
     elif args.action == "Excel_PDF":
         excel_pdf(

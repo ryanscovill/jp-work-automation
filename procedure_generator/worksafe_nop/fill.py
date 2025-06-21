@@ -402,7 +402,9 @@ def fill_nop_from_json(json_data):
 
 def fill_nop_from_pdf(pdf_file: str):
     fields = extract_fillable_data_with_risk(pdf_file)
-    print(f"Extracted fields from PDF: {fields}")
+    print("Extracted fields from PDF:")
+    for key, value in fields.items():
+        print(f"  {key}: {value}")
     fill_nop(fields)
 
 if __name__ == "__main__":
