@@ -82,13 +82,13 @@ class Config(BaseSettings):
         """Load YAML configuration file"""
         config_file = self._find_config_file("swp_config.yaml")
         if not config_file:
-            return {}
+            raise FileNotFoundError("Configuration file 'swp_config.yaml' not found.")
         
         try:
             with open(config_file, "r", encoding="utf-8") as file:
                 return yaml.safe_load(file) or {}
         except (FileNotFoundError, yaml.YAMLError):
-            return {}
+            raise FileNotFoundError("Failed to load configuration file 'swp_config.yaml'.")
 
     def _find_config_file(self, filename: str) -> Path | None:
         """Find config file in executable directory or parent directory"""
@@ -107,4 +107,9 @@ class Config(BaseSettings):
 
 
 # Create global config instance
-config = Config()
+try:
+    config = Config()
+except FileNotFoundError as e:
+    print(f"Error loading configuration: {e}")
+    input("Press Enter to exit...")
+    sys.exit(1)

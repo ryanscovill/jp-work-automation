@@ -15,10 +15,6 @@ if sys.stdout.encoding != "UTF-8":
 if sys.stderr.encoding != "UTF-8":
     sys.stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, "strict")
 
-# Load configuration values
-default_template_folder = config.paths.default_template_folder
-default_work_procedure_folder = config.paths.default_work_procedure_folder
-
 
 def setDebug(args):
     args.action = "Update_Master"
@@ -52,6 +48,9 @@ def setDebug(args):
     ],
 )
 def main():
+    default_template_folder = config.paths.default_template_folder
+    default_work_procedure_folder = config.paths.default_work_procedure_folder
+
     parser = GooeyParser(description="Automate creating a work procedure PDF")
 
     subparsers = parser.add_subparsers(help="Choose an action", dest="action")
@@ -202,4 +201,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        import traceback
+        traceback.print_exc()
+        input("Press Enter to exit...")
+        sys.exit(1)
