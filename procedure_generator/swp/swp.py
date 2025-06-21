@@ -130,8 +130,8 @@ def add_swp_page(doc: fitz.Document, page_index, swp_index):
     doc.fullcopy_page(page_index - 1, page_index)
     new_page: fitz.Page = doc[page_index]
     for annot in new_page.widgets():
-        if annot.field_name.startswith("SWP"):
-            annot.field_name = "SWP" + str(swp_index)
+        if annot.field_name and annot.field_name.startswith("SWP"):
+            annot.field_name = "SWP" + str(swp_index) # type: ignore
             annot.update()
 
 
@@ -145,7 +145,7 @@ def add_swp_pages(file, num_required_pages, output_pdf):
     doc.close()
 
 
-def get_select_field_values(doc, field_name):
+def get_select_field_values(doc, field_name) -> list[str]:
     values = []
     for page in doc:
         for annot in page.widgets():

@@ -118,6 +118,10 @@ def fill_element(page: Page, field_id: str, value: str, data_key: str, field_typ
         if not element_handle:
             print(f"Could not find field: {field_id} for {data_key}")
             return
+        
+        if not used_selector:
+            print(f"No valid selector found for field: {field_id} with data key: {data_key}")
+            return
 
         # Handle based on field type
         if field_type == "text" or field_type == "number" or field_type == "email":
