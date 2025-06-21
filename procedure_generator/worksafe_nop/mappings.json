@@ -1,204 +1,208 @@
 {
-  "transformations": {
-    "RISK_CALC": {
-      "type": "map",
-      "values": {
-        "High": "RiskCalcHigh",
-        "Moderate": "RiskCalcMod",
-        "Low": "RiskCalcLow"
+  "NOP": {
+    "transformations": {
+      "RISK_CALC": {
+        "type": "map",
+        "values": {
+          "High": "RiskCalcHigh",
+          "Moderate": "RiskCalcMod",
+          "Low": "RiskCalcLow"
+        }
+      },
+      "_DURATION_TIME": {
+        "type": "dynamic",
+        "source_fields": ["DURATION_HOURS", "DURATION_DAYS", "DURATION_MONTHS", "DURATION_YEARS"]
+      },
+      "DURATION_UNIT": {
+        "type": "dynamic",
+        "source_fields": ["DURATION_HOURS", "DURATION_DAYS", "DURATION_MONTHS", "DURATION_YEARS"],
+        "value_map": {
+          "DURATION_HOURS": "Hours",
+          "DURATION_DAYS": "Days",
+          "DURATION_MONTHS": "Months",
+          "DURATION_YEARS": "Years"
+        }
       }
     },
-    "_DURATION_TIME": {
-      "type": "dynamic",
-      "source_fields": ["DURATION_HOURS", "DURATION_DAYS", "DURATION_MONTHS", "DURATION_YEARS"]
-    },
-    "DURATION_UNIT": {
-      "type": "dynamic",
-      "source_fields": ["DURATION_HOURS", "DURATION_DAYS", "DURATION_MONTHS", "DURATION_YEARS"],
-      "value_map": {
-        "DURATION_HOURS": "Hours",
-        "DURATION_DAYS": "Days",
-        "DURATION_MONTHS": "Months",
-        "DURATION_YEARS": "Years"
+    "pages": [
+      {
+        "general information": {
+          "projectType": {
+            "type": "radio",
+            "data_key": "PROJECT_TYPE"
+          },
+          "firstName": {
+            "type": "text",
+            "data_key": "FIRST_NAME"
+          },
+          "lastName": {
+            "type": "text",
+            "data_key": "LAST_NAME"
+          },
+          "inputPhone": {
+            "type": "text",
+            "data_key": "PHONE_NUMBER"
+          },
+          "email": {
+            "type": "text",
+            "data_key": "EMAIL"
+          }
+        }
+      },
+      {
+        "worksite details": {
+          "SearchTextField": {
+            "type": "address",
+            "data_key": "ADDRESS"
+          },
+          "detailsText": {
+            "type": "textarea",
+            "data_key": "ADDRESS_DETAILS"
+          },
+          "myDate": {
+            "type": "date",
+            "data_key": "WORK_DATE"
+          },
+          "durationTime": {
+            "type": "number",
+            "data_key": "_DURATION_TIME"
+          },
+          "durationUnit": {
+            "type": "select",
+            "data_key": "DURATION_UNIT"
+          },
+          "startTime": {
+            "type": "select",
+            "data_key": "START_TIME"
+          },
+          "endTime": {
+            "type": "select",
+            "data_key": "END_TIME"
+          },
+          "workercount": {
+            "type": "number",
+            "data_key": "WORKER_COUNT"
+          },
+          "employerId": {
+            "type": "text",
+            "data_key": "WORKSAFE_BC_ACCOUNT_NUMBER"
+          },
+          "employerName": {
+            "type": "text",
+            "data_key": "EMPLOYER_NAME"
+          },
+          "addressLine1": {
+            "type": "address",
+            "data_key": "EMPLOYER_ADDRESS"
+          }
+        }
+      },
+      { 
+        "project information": {
+          "AsbestosCheck": {
+            "type": "checkbox",
+            "data_key": "ASBESTOS_CHECK"
+          },
+          "LeadCheck": {
+            "type": "checkbox",
+            "data_key": "LEAD_CHECK"
+          },
+          "OtherCheck": {
+            "type": "checkbox",
+            "data_key": "OTHER_CHECK"
+          },
+          "employerId": {
+            "type": "text",
+            "data_key": "WORKSAFE_BC_ACCOUNT_NUMBER"
+          },
+          "asbestosLicenseNumber": {
+            "type": "text",
+            "data_key": "ASBESTOS_LICENSE_NUMBER"
+          },
+          "employerName": {
+            "type": "text",
+            "data_key": "EMPLOYER_NAME"
+          },
+          "addressLine1": {
+            "type": "address",
+            "data_key": "EMPLOYER_ADDRESS"
+          },
+          "WhoisInCharge": {
+            "type": "radio",
+            "data_key": "IN_CHARGE"
+          },
+          "firstName": {
+            "type": "text",
+            "data_key": "FIRST_NAME"
+          },
+          "lastName": {
+            "type": "text",
+            "data_key": "LAST_NAME"
+          },
+          "inputTitle": {
+            "type": "text",
+            "data_key": "JOB_TITLE"
+          },
+          "inputEmail": {
+            "type": "text",
+            "data_key": "EMAIL"
+          },
+          "inputPhone": {
+            "type": "text",
+            "data_key": "PHONE_NUMBER"
+          },
+          "asbestosCertificationNumber": {
+            "type": "text",
+            "data_key": "ASBESTOS_CERTIFICATION_NUMBER"
+          },
+          "mulitipleEmployers": {
+            "type": "radio",
+            "data_key": "MULTIPLE_EMPLOYERS"
+          },
+          "detailsText": {
+            "type": "textarea",
+            "data_key": "OTHER_CONSULTING_FIRMS"
+          }
+        }
+      },
+      {
+        "scope of work" : {
+          "DemolitionCheck": {
+            "type": "checkbox",
+            "data_key": "DEMOLITION_CHECK"
+          },
+          "RepairCheck": {
+            "type": "checkbox",
+            "data_key": "REPAIR_CHECK"
+          },
+          "RenovationCheck": {
+            "type": "checkbox",
+            "data_key": "RENOVATION_CHECK"
+          },
+          "DismantlementCheck": {
+            "type": "checkbox",
+            "data_key": "DISMANTLEMENT_CHECK"
+          },
+          "RemovalCheck": {
+            "type": "checkbox",
+            "data_key": "REMOVAL_CHECK"
+          },
+          "EnclosureCheck": {
+            "type": "checkbox",
+            "data_key": "ENCLOSURE_CHECK"
+          },
+          "EncapsulationCheck": {
+            "type": "checkbox",
+            "data_key": "ENCAPSULATION_CHECK"
+          },
+          "RiskCalc": {
+            "type": "radio",
+            "data_key": "RISK_CALC"
+          }        }
       }
-    }
+    ]
   },
-  "pages": [
-    {
-      "general information": {
-        "projectType": {
-          "type": "radio",
-          "data_key": "PROJECT_TYPE"
-        },
-        "firstName": {
-          "type": "text",
-          "data_key": "FIRST_NAME"
-        },
-        "lastName": {
-          "type": "text",
-          "data_key": "LAST_NAME"
-        },
-        "inputPhone": {
-          "type": "text",
-          "data_key": "PHONE_NUMBER"
-        },
-        "email": {
-          "type": "text",
-          "data_key": "EMAIL"
-        }
-      }
-    },
-    {
-      "worksite details": {
-        "SearchTextField": {
-          "type": "address",
-          "data_key": "ADDRESS"
-        },
-        "detailsText": {
-          "type": "textarea",
-          "data_key": "ADDRESS_DETAILS"
-        },
-        "myDate": {
-          "type": "date",
-          "data_key": "WORK_DATE"
-        },
-        "durationTime": {
-          "type": "number",
-          "data_key": "_DURATION_TIME"
-        },
-        "durationUnit": {
-          "type": "select",
-          "data_key": "DURATION_UNIT"
-        },
-        "startTime": {
-          "type": "select",
-          "data_key": "START_TIME"
-        },
-        "endTime": {
-          "type": "select",
-          "data_key": "END_TIME"
-        },
-        "workercount": {
-          "type": "number",
-          "data_key": "WORKER_COUNT"
-        },
-        "employerId": {
-          "type": "text",
-          "data_key": "WORKSAFE_BC_ACCOUNT_NUMBER"
-        },
-        "employerName": {
-          "type": "text",
-          "data_key": "EMPLOYER_NAME"
-        },
-        "addressLine1": {
-          "type": "address",
-          "data_key": "EMPLOYER_ADDRESS"
-        }
-      }
-    },
-    { 
-      "project information": {
-        "AsbestosCheck": {
-          "type": "checkbox",
-          "data_key": "ASBESTOS_CHECK"
-        },
-        "LeadCheck": {
-          "type": "checkbox",
-          "data_key": "LEAD_CHECK"
-        },
-        "OtherCheck": {
-          "type": "checkbox",
-          "data_key": "OTHER_CHECK"
-        },
-        "employerId": {
-          "type": "text",
-          "data_key": "WORKSAFE_BC_ACCOUNT_NUMBER"
-        },
-        "asbestosLicenseNumber": {
-          "type": "text",
-          "data_key": "ASBESTOS_LICENSE_NUMBER"
-        },
-        "employerName": {
-          "type": "text",
-          "data_key": "EMPLOYER_NAME"
-        },
-        "addressLine1": {
-          "type": "address",
-          "data_key": "EMPLOYER_ADDRESS"
-        },
-        "WhoisInCharge": {
-          "type": "radio",
-          "data_key": "IN_CHARGE"
-        },
-        "firstName": {
-          "type": "text",
-          "data_key": "FIRST_NAME"
-        },
-        "lastName": {
-          "type": "text",
-          "data_key": "LAST_NAME"
-        },
-        "inputTitle": {
-          "type": "text",
-          "data_key": "JOB_TITLE"
-        },
-        "inputEmail": {
-          "type": "text",
-          "data_key": "EMAIL"
-        },
-        "inputPhone": {
-          "type": "text",
-          "data_key": "PHONE_NUMBER"
-        },
-        "asbestosCertificationNumber": {
-          "type": "text",
-          "data_key": "ASBESTOS_CERTIFICATION_NUMBER"
-        },
-        "mulitipleEmployers": {
-          "type": "radio",
-          "data_key": "MULTIPLE_EMPLOYERS"
-        },
-        "detailsText": {
-          "type": "textarea",
-          "data_key": "OTHER_CONSULTING_FIRMS"
-        }
-      }
-    },
-    {
-      "scope of work" : {
-        "DemolitionCheck": {
-          "type": "checkbox",
-          "data_key": "DEMOLITION_CHECK"
-        },
-        "RepairCheck": {
-          "type": "checkbox",
-          "data_key": "REPAIR_CHECK"
-        },
-        "RenovationCheck": {
-          "type": "checkbox",
-          "data_key": "RENOVATION_CHECK"
-        },
-        "DismantlementCheck": {
-          "type": "checkbox",
-          "data_key": "DISMANTLEMENT_CHECK"
-        },
-        "RemovalCheck": {
-          "type": "checkbox",
-          "data_key": "REMOVAL_CHECK"
-        },
-        "EnclosureCheck": {
-          "type": "checkbox",
-          "data_key": "ENCLOSURE_CHECK"
-        },
-        "EncapsulationCheck": {
-          "type": "checkbox",
-          "data_key": "ENCAPSULATION_CHECK"
-        },
-        "RiskCalc": {
-          "type": "radio",
-          "data_key": "RISK_CALC"
-        }
-      }
-    }
-  ]
+  "EXCEL_TO_PDF": {
+    
+  }
 }

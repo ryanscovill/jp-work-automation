@@ -8,6 +8,7 @@ import sys
 import codecs
 from gooey import Gooey, GooeyParser
 import fitz
+from worksafe_nop.fill import fill_nop
 
 
 # Handle encodings
@@ -21,6 +22,10 @@ default_template_folder = r"T:\Safe Work Procedures\SOP-SWP-RA-ECP - templates"
 
 # The default folder for the work procedure documents
 default_work_procedure_folder = r"T:\Safe Work Procedures"
+
+# Default paths for NOP files
+default_nop_data_file = os.path.join(os.path.dirname(__file__), "worksafe_nop", "data.json")
+default_nop_mappings_file = os.path.join(os.path.dirname(__file__), "worksafe_nop", "mappings.json")
 
 # The select field name to get the templates
 template_select_field = "TEMPLATE_SELECT"
@@ -85,7 +90,7 @@ def get_single_filepath_from_folder(base_folder, search_filename):
 
 
 # Returns the data array from a word file
-def get_data_from_word_file(file_name, work_procedure_folder) -> [str]:
+def get_data_from_word_file(file_name, work_procedure_folder) -> list[str]:
     file_name_docx = f"{file_name}.docx"
     file_path = get_single_filepath_from_folder(work_procedure_folder, file_name_docx)
 
@@ -403,6 +408,7 @@ def main():
         "Update_Master",
         prog="Update Master",
         help="Updates the Master Document with the list of templates and work procedures",
+        description="Updates the master template dropdown fields for listed templates and work procedures",
     )
     procedure_group.add_argument(
         "--source_pdf",
@@ -417,8 +423,7 @@ def main():
         widget="DirChooser",
         default=default_template_folder,
         gooey_options={"default_path": default_template_folder, "full_width": True},
-        help="The folder containing the template PDFs",
-    )
+        help="The folder containing the template PDFs",    )
     procedure_group.add_argument(
         "--work_procedure_folder",
         metavar="Work Procedure Folder",
@@ -428,6 +433,30 @@ def main():
         help="The folder containing the work procedure documents",
     )
 
+    fill_nop_group = subparsers.add_parser(
+        "Fill_NOP",
+        prog="Fill NOP",
+        help="Fill NOP forms using web automation",
+        description="Automate filling of NOP (Notice of Project) forms using browser automation"
+    )
+    fill_nop_group.add_argument(
+        "--data_file",
+        metavar="Data File (JSON)",
+        widget="FileChooser",
+        gooey_options={"wildcard": "JSON files (*.json)|*.json", "full_width": True},
+        help="The JSON file containing the form data",
+        default=default_nop_data_file,
+        required=True,
+    )
+    fill_nop_group.add_argument(
+        "--mappings_file",
+        metavar="Mappings File (JSON)",
+        widget="FileChooser",
+        gooey_options={"wildcard": "JSON files (*.json)|*.json", "full_width": True},
+        help="The JSON file containing the field mappings",
+        default=default_nop_mappings_file,
+        required=True,
+    )
     args = parser.parse_args()
 
     # uncomment to debug without GUI
@@ -443,6 +472,10 @@ def main():
         template_folder = args.template_folder
         work_procedure_folder = args.work_procedure_folder
         update_master(source_pdf, template_folder, work_procedure_folder)
+    elif args.action == "Fill_NOP":
+        data_file = args.data_file
+        mappings_file = args.mappings_file
+        fill_nop(data_file, mappings_file)
 
 
 if __name__ == "__main__":

@@ -4,13 +4,13 @@ import time
 import argparse
 from playwright.sync_api import sync_playwright, Page
 
-from procedure_generator.worksafe_nop.handlers import (
+from .handlers import (
     handle_address,
     handle_checkbox,
     handle_dropdown,
     handle_radio_button,
 )
-from procedure_generator.worksafe_nop.settings import Settings
+from .settings import Settings
 
 
 def load_json_file(filename):
@@ -49,9 +49,12 @@ def apply_transformations(data_key, value, transformations, data):
 
 def fill_form(page: Page, page_name: str, mappings, data):
     """Fill form fields based on mappings."""
+    # Get NOP mappings
+    nop_mappings = mappings.get("NOP", {})
+    
     # Find the correct page mapping
     page_mapping = None
-    for p in mappings["pages"]:
+    for p in nop_mappings.get("pages", []):
         if page_name in p:
             page_mapping = p[page_name]
             break
@@ -66,7 +69,7 @@ def fill_form(page: Page, page_name: str, mappings, data):
     page.wait_for_load_state("networkidle")
     
     # Get transformations from mappings
-    transformations = mappings.get("transformations", {})
+    transformations = nop_mappings.get("transformations", {})
 
     # Fill each field based on the mapping
     for field_id, field_config in page_mapping.items():
@@ -203,8 +206,7 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
             page_title = page.evaluate("""() => {
                 // Try different ways to find the page title/heading
                 const h1 = document.querySelector('h1, .page-title, .title');
-                if (h1) return h1.innerText;
-                
+                if (h1) return h1.innerText;                
                 // Look for breadcrumb
                 const breadcrumb = document.querySelector('.breadcrumb li:last-child');
                 if (breadcrumb) return breadcrumb.innerText;
@@ -221,7 +223,8 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
                 print(f"Detected page title: {page_title}")
 
                 # Match against our known pages
-                for page_data in mappings["pages"]:
+                nop_mappings = mappings.get("NOP", {})
+                for page_data in nop_mappings.get("pages", []):
                     page_name = list(page_data.keys())[0]
                     if page_name.lower() in page_title or page_title in page_name.lower():
                         return page_name
@@ -322,9 +325,7 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
             if time.time() - last_check_time > Settings.NEXT_BUTTON_CHECK_INTERVAL:
                 checker_fn = watch_for_next_button()
                 if checker_fn:
-                    last_check_time = time.time()
-
-            # Fallback: periodically check if page content changed substantially
+                    last_check_time = time.time()            # Fallback: periodically check if page content changed substantially
             if time.time() - last_check_time > Settings.PERIODIC_PAGE_CHECK_INTERVAL:
                 last_check_time = time.time()
                 new_page = detect_current_page()
@@ -334,15 +335,34 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
                     processed_pages.add(new_page)
 
         except Exception as e:
+            error_message = str(e)
             print(f"Error in navigation monitor: {e}")
-            # Don't break the loop on transient errors
+            
+            # Check if the error indicates the browser/page was closed
+            if any(keyword in error_message.lower() for keyword in [
+                "target page, context or browser has been closed",
+                "page has been closed",
+                "browser has been closed", 
+                "context has been closed",
+                "connection closed"
+            ]):
+                print("Browser was closed by user - exiting monitoring loop")
+                break
+            
+            # Don't break the loop on other transient errors
+            continue
 
 
-def fill_nop(start_page="general-information"):
-    # Load data and mappings
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    data = load_json_file(os.path.join(script_dir, "data.json"))
-    mappings = load_json_file(os.path.join(script_dir, "mappings.json"))
+def fill_nop(data_file=None, mappings_file=None):
+    start_page = "general-information"
+
+    if data_file is None:
+        raise ValueError("data_file must be provided")
+    if mappings_file is None:
+        raise ValueError("mappings_file must be provided")
+    
+    data = load_json_file(data_file)
+    mappings = load_json_file(mappings_file)
     headless = False
 
     with sync_playwright() as playwright:
@@ -353,9 +373,7 @@ def fill_nop(start_page="general-information"):
         context = browser.new_context(
             viewport={"width": Settings.VIEWPORT_WIDTH, "height": Settings.VIEWPORT_HEIGHT},
             accept_downloads=True,
-        )
-
-        # Create a new page
+        )        # Create a new page
         page = context.new_page()
 
         try:
@@ -366,20 +384,20 @@ def fill_nop(start_page="general-information"):
             # Monitor for navigation to other pages
             monitor_navigation(page, start_page, mappings, data)
 
-            # Wait for user to close browser manually
-            print("Form filling complete. Press Ctrl+C to exit.")
-            while True:
-                time.sleep(1)
+            # Form filling monitoring has ended (browser was likely closed)
+            print("Form filling session ended.")
 
         except KeyboardInterrupt:
             print("Exiting due to user interrupt")
         except Exception as e:
             print(f"Error: {e}")
         finally:
-            if not headless:
-                input("Press Enter to close the browser...")
-            context.close()
-            browser.close()
+            try:
+                context.close()
+                browser.close()
+                print("Browser closed successfully.")
+            except Exception as e:
+                print(f"Error closing browser: {e}")
 
 
 if __name__ == "__main__":
