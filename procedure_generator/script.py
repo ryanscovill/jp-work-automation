@@ -4,7 +4,7 @@ import sys
 import codecs
 from gooey import Gooey, GooeyParser
 from procedure_generator.swp.swp import generate_pdf, update_master
-from procedure_generator.worksafe_nop.fill import fill_nop
+from procedure_generator.worksafe_nop.fill import fill_nop, fill_nop_from_pdf
 from procedure_generator.config_loader import config
 from procedure_generator.excel_pdf.excel_pdf import excel_pdf
 
@@ -133,10 +133,10 @@ def main():
     )
     fill_nop_options.add_argument(
         "--data_file",
-        metavar="Data File (JSON)",
+        metavar="NOP PDF",
         widget="FileChooser",
-        gooey_options={"wildcard": "JSON files (*.json)|*.json", "full_width": True},
-        help="The JSON file containing the form data",
+        gooey_options={"wildcard": "PDF files (*.pdf)|*.pdf", "full_width": True},
+        help="The NOP PDF file",
         required=True,
     )
 
@@ -191,7 +191,7 @@ def main():
         update_master(source_pdf, template_folder, work_procedure_folder)
     elif args.action == "Fill_NOP":
         data_file = args.data_file
-        fill_nop(data_file)
+        fill_nop_from_pdf(data_file)
     elif args.action == "Excel_PDF":
         excel_pdf(
             excel_file=args.excel_file,

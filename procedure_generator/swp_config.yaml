@@ -122,7 +122,7 @@ NOP:
           data_key: "LAST_NAME"
         inputPhone:
           type: "text"
-          data_key: "PHONE_NUMBER"
+          data_key: "PHONE"
         email:
           type: "text"
           data_key: "EMAIL"

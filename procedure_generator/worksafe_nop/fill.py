@@ -3,6 +3,7 @@ import os
 import time
 import sys
 import argparse
+from numpy.random import f
 from playwright.sync_api import sync_playwright, Page
 
 from .handlers import (
@@ -12,6 +13,7 @@ from .handlers import (
     handle_radio_button,
 )
 from ..config_loader import config
+from .pdf_to_data import extract_fillable_data_with_risk
 
 
 def load_json_file(filename):
@@ -348,13 +350,8 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
             continue
 
 
-def fill_nop(data_file=None):
+def fill_nop(data):
     start_page = "general-information"
-
-    if data_file is None:
-        raise ValueError("data_file must be provided")
-    
-    data = load_json_file(data_file)
     mappings = config.nop
 
     with sync_playwright() as playwright:
@@ -392,6 +389,22 @@ def fill_nop(data_file=None):
                 print(f"Error closing browser: {e}")
 
 
+def fill_nop_from_json(json_data):
+    """Fill NOP form using data from a JSON object."""
+    if not json_data:
+        raise ValueError("JSON data cannot be empty")
+    
+    if isinstance(json_data, str):
+        json_data = json.loads(json_data)
+
+    fill_nop(data=json_data)
+
+
+def fill_nop_from_pdf(pdf_file: str):
+    fields = extract_fillable_data_with_risk(pdf_file)
+    print(f"Extracted fields from PDF: {fields}")
+    fill_nop(fields)
+
 if __name__ == "__main__":
     # Command line argument parsing
     parser = argparse.ArgumentParser(description="Fill WorkSafe BC NOP forms automatically using data from a JSON file.")
@@ -404,7 +417,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     try:
-        fill_nop(data_file=args.data_file)
+        fill_nop_from_json(args.data_file)
     except FileNotFoundError as e:
         print(f"Error: Could not find data file '{args.data_file}': {e}")
         sys.exit(1)
