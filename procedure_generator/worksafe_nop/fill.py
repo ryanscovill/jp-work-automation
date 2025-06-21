@@ -1,9 +1,8 @@
 import json
-import os
 import time
 import sys
 import argparse
-from numpy.random import f
+import json
 from playwright.sync_api import sync_playwright, Page
 
 from .handlers import (
@@ -393,15 +392,15 @@ def fill_nop(data):
                 print(f"Error closing browser: {e}")
 
 
-def fill_nop_from_json(json_data):
+def fill_nop_from_json(json_data_file: str):
     """Fill NOP form using data from a JSON object."""
-    if not json_data:
+    if not json_data_file:
         raise ValueError("JSON data cannot be empty")
     
-    if isinstance(json_data, str):
-        json_data = json.loads(json_data)
+    if isinstance(json_data_file, str):
+        json_data_file = json.loads(json_data_file)
 
-    fill_nop(data=json_data)
+    fill_nop(data=json_data_file)
 
 
 def fill_nop_from_pdf(pdf_file: str):
