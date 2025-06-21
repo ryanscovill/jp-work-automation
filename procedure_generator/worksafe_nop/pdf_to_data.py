@@ -1,6 +1,7 @@
 from fillpdf import fillpdfs
 import fitz  # PyMuPDF
 import re
+import argparse
 
 def extract_fillable_data(pdf_path) -> dict:
     fields = fillpdfs.get_form_fields(pdf_path)
@@ -61,6 +62,10 @@ def extract_fillable_data_with_risk(pdf_path) -> dict:
     return fields
 
 if __name__ == "__main__":
-    pdf_path = r"[Example Path]"
-    fields = extract_fillable_data_with_risk(pdf_path)
+    parser = argparse.ArgumentParser(description="Extract fillable data from PDF with risk analysis")
+    parser.add_argument("pdf_path", help="Path to the PDF file to process")
+    
+    args = parser.parse_args()
+    
+    fields = extract_fillable_data_with_risk(args.pdf_path)
     print(fields)
