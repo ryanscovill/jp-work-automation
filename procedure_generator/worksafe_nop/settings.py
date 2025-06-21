@@ -17,3 +17,5 @@ class Settings:
     # Viewport settings
     VIEWPORT_WIDTH = 1400
     VIEWPORT_HEIGHT = 900
+
+    BROWSER_PATH = r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"

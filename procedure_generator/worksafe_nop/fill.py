@@ -250,7 +250,7 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
                 "button:has-text('Next'), input[value='Next'], .btn-primary:has-text('Next')"
             )
             if next_button and next_button.is_visible():
-                print("Found Next button - setting up click monitor")
+                # print("Found Next button - setting up click monitor")
 
                 # Save current state before click
                 pre_click_content = page.evaluate("document.body.innerHTML.length")
@@ -309,7 +309,7 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
             route_changes = page.evaluate("window._routeChanges || []")
             if route_changes:
                 page.evaluate("window._routeChanges = []")
-                print(f"Detected route changes: {route_changes}")
+                # print(f"Detected route changes: {route_changes}")
 
                 # Wait for Angular to finish rendering
                 page.wait_for_timeout(Settings.STANDARD_TIMEOUT)
@@ -363,11 +363,10 @@ def fill_nop(data_file=None, mappings_file=None):
     
     data = load_json_file(data_file)
     mappings = load_json_file(mappings_file)
-    headless = False
 
     with sync_playwright() as playwright:
         # Launch browser with specified options
-        browser = playwright.chromium.launch(headless=False)
+        browser = playwright.chromium.launch(executable_path=Settings.BROWSER_PATH, headless=False)
 
         # Create a new browser context with viewport and device options
         context = browser.new_context(

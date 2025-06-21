@@ -11,4 +11,7 @@ Takes a work order and creates a safe work procedure PDF from a template and pro
 
 To make an executable
 
-`pyinstaller --onefile --windowed script.py`
+`PLAYWRIGHT_BROWSERS_PATH="0"`
+`playwright uninstall`
+
+`pyinstaller script.spec --clean`

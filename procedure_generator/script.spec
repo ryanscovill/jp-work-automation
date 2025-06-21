@@ -3,10 +3,10 @@
 
 a = Analysis(
     ['script.py'],
-    pathex=[],
+    pathex=['.'],
     binaries=[],
     datas=[],
-    hiddenimports=[],
+    hiddenimports=['worksafe_nop', 'worksafe_nop.fill', 'worksafe_nop.handlers', 'worksafe_nop.pdf_to_data', 'worksafe_nop.settings'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
