@@ -52,7 +52,7 @@ def fill_form(page: Page, page_name: str, mappings, data):
     """Fill form fields based on mappings."""
     # Find the correct page mapping
     page_mapping = None
-    for p in mappings.get("pages", []):
+    for p in mappings.pages:
         if page_name in p:
             page_mapping = p[page_name]
             break
@@ -67,7 +67,7 @@ def fill_form(page: Page, page_name: str, mappings, data):
     page.wait_for_load_state("networkidle")
     
     # Get transformations from mappings
-    transformations = mappings.get("transformations", {})
+    transformations = mappings.transformations
 
     # Fill each field based on the mapping
     for field_id, field_config in page_mapping.items():
@@ -219,9 +219,7 @@ def monitor_navigation(page: Page, current_page: str, mappings, data):
             if page_title:
                 page_title = page_title.lower()
                 print(f"Detected page title: {page_title}")
-
-                # Match against our known pages
-                for page_data in mappings.get("pages", []):
+                for page_data in mappings.pages:
                     page_name = list(page_data.keys())[0]
                     if page_name.lower() in page_title or page_title in page_name.lower():
                         return page_name
@@ -357,7 +355,7 @@ def fill_nop(data_file=None):
         raise ValueError("data_file must be provided")
     
     data = load_json_file(data_file)
-    mappings = config.get_nop_config()
+    mappings = config.nop
 
     with sync_playwright() as playwright:
         # Launch browser with specified options
