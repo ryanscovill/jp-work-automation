@@ -3,6 +3,13 @@ import fitz  # PyMuPDF
 import re
 import argparse
 
+def show_mupdf_errors(show: bool = True):
+    try:
+        fitz.TOOLS.mupdf_display_errors(show)
+    except AttributeError:
+        # Fallback for older versions
+        pass
+    
 def extract_fillable_data(pdf_path) -> dict:
     fields = fillpdfs.get_form_fields(pdf_path)
     fields = {k: v for k, v in fields.items() if "check box" not in k.lower()}
@@ -11,12 +18,17 @@ def extract_fillable_data(pdf_path) -> dict:
 
 def extract_risk_data(pdf_path) -> dict:
     risk_data = {"low risk": 0, "moderate risk": 0, "high risk": 0}
-    
-    with fitz.open(pdf_path) as pdf:
-        for page in pdf:
-            text = page.get_text()
-            for risk in risk_data.keys():
-                risk_data[risk] += text.lower().count(risk)
+
+    show_mupdf_errors(False)
+    pdf = fitz.open(pdf_path)
+    for page_num in range(len(pdf)):
+        page = pdf[page_num]
+        # Extract text from the page
+        text = page.get_text()  # type: ignore
+        for risk in risk_data.keys():
+            risk_data[risk] += text.lower().count(risk)
+    pdf.close()
+    show_mupdf_errors(True)
 
     return risk_data
 

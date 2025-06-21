@@ -52,6 +52,15 @@ class NOPConfig(BaseModel):
     pages: List[Dict[str, Any]] = Field(default_factory=list)
 
 
+class ExcelToPDFProcessingConfig(BaseModel):
+    default_sheet_name: str = ""
+
+
+class ExcelToPDFConfig(BaseModel):
+    field_mappings: Dict[str, str] = Field(default_factory=dict)
+    processing: ExcelToPDFProcessingConfig = Field(default_factory=ExcelToPDFProcessingConfig)
+
+
 class Config(BaseSettings):
     model_config = {"extra": "allow"}
     
@@ -62,6 +71,7 @@ class Config(BaseSettings):
     ui_settings: UISettingsConfig = Field(default_factory=UISettingsConfig)
     worksafe_bc: WorksafeBCConfig = Field(default_factory=WorksafeBCConfig)
     nop: NOPConfig = Field(default_factory=NOPConfig, alias="NOP")
+    excel_to_pdf: ExcelToPDFConfig = Field(default_factory=ExcelToPDFConfig, alias="EXCEL_TO_PDF")
 
     def __init__(self, **kwargs):
         # Load YAML config and merge with kwargs
@@ -72,13 +82,13 @@ class Config(BaseSettings):
         """Load YAML configuration file"""
         config_file = self._find_config_file("swp_config.yaml")
         if not config_file:
-            return {}
+            raise FileNotFoundError("Configuration file 'swp_config.yaml' not found.")
         
         try:
             with open(config_file, "r", encoding="utf-8") as file:
                 return yaml.safe_load(file) or {}
         except (FileNotFoundError, yaml.YAMLError):
-            return {}
+            raise FileNotFoundError("Failed to load configuration file 'swp_config.yaml'.")
 
     def _find_config_file(self, filename: str) -> Path | None:
         """Find config file in executable directory or parent directory"""
@@ -97,4 +107,9 @@ class Config(BaseSettings):
 
 
 # Create global config instance
-config = Config()
+try:
+    config = Config()
+except FileNotFoundError as e:
+    print(f"Error loading configuration: {e}")
+    input("Press Enter to exit...")
+    sys.exit(1)

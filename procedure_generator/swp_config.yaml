@@ -122,7 +122,7 @@ NOP:
           data_key: "LAST_NAME"
         inputPhone:
           type: "text"
-          data_key: "PHONE_NUMBER"
+          data_key: "PHONE"
         email:
           type: "text"
           data_key: "EMAIL"
@@ -241,5 +241,20 @@ NOP:
           type: "radio"
           data_key: "RISK_CALC"
 
-# Excel to PDF conversion configuration (placeholder for future functionality)
-EXCEL_TO_PDF: {}
+# Excel to PDF conversion configuration
+EXCEL_TO_PDF:
+  # Mapping from Excel column names to PDF field names
+  # Format: "Excel Column Name": "PDF Field Name"
+  field_mappings:
+    "Name": "FullName"
+    "Address": "StreetAddress"
+    "Phone": "PhoneNumber"
+    "Province": "Region"
+    "Job Title": "JobTitle"
+    "Department": "Dept"
+  
+  # Configuration for Excel file processing
+  processing:
+    # Sheet name to read from (if not specified, uses first sheet)
+    default_sheet_name: "SiteDocsData"
+
