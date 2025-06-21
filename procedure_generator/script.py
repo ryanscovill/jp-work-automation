@@ -8,6 +8,8 @@ import sys
 import codecs
 from gooey import Gooey, GooeyParser
 import fitz
+from procedure_generator.worksafe_nop.fill import fill_nop
+from procedure_generator.config_loader import config
 
 
 # Handle encodings
@@ -16,28 +18,16 @@ if sys.stdout.encoding != "UTF-8":
 if sys.stderr.encoding != "UTF-8":
     sys.stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, "strict")
 
-# The default folder for the template PDFs
-default_template_folder = r"T:\Safe Work Procedures\SOP-SWP-RA-ECP - templates"
+# Load configuration values
+default_template_folder = config.paths.default_template_folder
+default_work_procedure_folder = config.paths.default_work_procedure_folder
 
-# The default folder for the work procedure documents
-default_work_procedure_folder = r"T:\Safe Work Procedures"
-
-# The select field name to get the templates
-template_select_field = "TEMPLATE_SELECT"
-
-# The select field name to get the work procedure
-# X is replaced by a number from 1 to number of work procedure fields
-work_procedure_select_field = "WORK_PROCEDURE_SELECTX"
-
-# The hidden select field name that stores all the work procedures
-work_procedure_select_all_field = "WORK_PROCEDURE_SELECT_ALL"
-
-# The text field to input the work procedure text
-# In the template PDF, name the text field "SWP", "SWP2", "SWP3" etc for each cooresponding page
-# Additional pages are automatically added as needed
-# X is replaced by a number, except for the first page, which has no number
-work_procedure_text_field = "SWPX"
-num_work_procedure_fields = 12
+# Field configuration
+template_select_field = config.field_names.template_select_field
+work_procedure_select_field = config.field_names.work_procedure_select_field
+work_procedure_select_all_field = config.field_names.work_procedure_select_all_field
+work_procedure_text_field = config.field_names.work_procedure_text_field
+num_work_procedure_fields = config.field_names.num_work_procedure_fields
 
 
 # Extracts the data from a pdf into a dictionary
@@ -85,7 +75,7 @@ def get_single_filepath_from_folder(base_folder, search_filename):
 
 
 # Returns the data array from a word file
-def get_data_from_word_file(file_name, work_procedure_folder) -> [str]:
+def get_data_from_word_file(file_name, work_procedure_folder) -> list[str]:
     file_name_docx = f"{file_name}.docx"
     file_path = get_single_filepath_from_folder(work_procedure_folder, file_name_docx)
 
@@ -335,12 +325,11 @@ def update_master(source_pdf, template_folder, work_procedure_folder):
 
 
 def setDebug(args):
+    debug_paths = config.get_debug_paths()
     args.action = "Update_Master"
-    args.source_pdf = (
-        r"D:\OneDrive\Documents\jp\examples_new\WCB and PCF Master -04-10-2023 MAIN2 - Copy_UP2.pdf"
-    )
-    args.template_folder = r"D:\OneDrive\Documents\jp\examples_new\Templates"
-    args.work_procedure_folder = r"D:\OneDrive\Documents\jp\examples_new\Procedure Documents"
+    args.source_pdf = debug_paths.get("source_pdf", "")
+    args.template_folder = debug_paths.get("template_folder", "")
+    args.work_procedure_folder = debug_paths.get("work_procedure_folder", "")
     return args
 
 
@@ -348,7 +337,7 @@ def setDebug(args):
     program_name="Work Procedure PDF Generator",
     tabbed_groups=True,
     navigation="Tabbed",
-    default_size=(800, 600),
+    default_size=tuple(config.get("ui_settings.default_window_size", [800, 600])),
     menu=[
         {
             "name": "About",
@@ -403,6 +392,7 @@ def main():
         "Update_Master",
         prog="Update Master",
         help="Updates the Master Document with the list of templates and work procedures",
+        description="Updates the master template dropdown fields for listed templates and work procedures",
     )
     procedure_group.add_argument(
         "--source_pdf",
@@ -417,8 +407,7 @@ def main():
         widget="DirChooser",
         default=default_template_folder,
         gooey_options={"default_path": default_template_folder, "full_width": True},
-        help="The folder containing the template PDFs",
-    )
+        help="The folder containing the template PDFs",    )
     procedure_group.add_argument(
         "--work_procedure_folder",
         metavar="Work Procedure Folder",
@@ -428,6 +417,20 @@ def main():
         help="The folder containing the work procedure documents",
     )
 
+    fill_nop_group = subparsers.add_parser(
+        "Fill_NOP",
+        prog="Fill NOP",
+        help="Fill NOP forms using web automation",
+        description="Automate filling of NOP (Notice of Project) forms using browser automation"
+    )
+    fill_nop_group.add_argument(
+        "--data_file",
+        metavar="Data File (JSON)",
+        widget="FileChooser",
+        gooey_options={"wildcard": "JSON files (*.json)|*.json", "full_width": True},
+        help="The JSON file containing the form data",
+        required=True,
+    )
     args = parser.parse_args()
 
     # uncomment to debug without GUI
@@ -443,6 +446,9 @@ def main():
         template_folder = args.template_folder
         work_procedure_folder = args.work_procedure_folder
         update_master(source_pdf, template_folder, work_procedure_folder)
+    elif args.action == "Fill_NOP":
+        data_file = args.data_file
+        fill_nop(data_file)
 
 
 if __name__ == "__main__":

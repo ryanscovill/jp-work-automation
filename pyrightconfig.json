@@ -1,0 +1,35 @@
+{
+    "include": [
+        "procedure_generator"
+    ],
+    "exclude": [
+        "**/node_modules",
+        "**/__pycache__",
+        "**/.*",
+        "build",
+        "dist",
+        ".venv",
+        "procedure_generator/build",
+        "procedure_generator/hooks/__pycache__",
+        "procedure_generator/worksafe_nop/__pycache__",
+        "**/build/**",
+        "**/dist/**"
+    ],
+    "ignore": [
+        "procedure_generator/build/**",
+        "**/__pycache__/**",
+        "**/build/**",
+        "**/dist/**"
+    ],
+    "defineConstant": {},
+    "typeCheckingMode": "basic",
+    "strictListInference": false,
+    "strictDictionaryInference": false,
+    "strictSetInference": false,
+    "reportMissingImports": true,
+    "reportMissingTypeStubs": false,
+    "pythonVersion": "3.13",
+    "pythonPlatform": "Windows",
+    "autoSearchPaths": true,
+    "useLibraryCodeForTypes": true
+}
