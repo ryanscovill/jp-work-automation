@@ -56,8 +56,13 @@ class ExcelToPDFProcessingConfig(BaseModel):
     default_sheet_name: str = ""
 
 
+class FieldMappingConfig(BaseModel):
+    pdf_field: str
+    type: str = "text"
+
+
 class ExcelToPDFConfig(BaseModel):
-    field_mappings: Dict[str, str] = Field(default_factory=dict)
+    field_mappings: Dict[str, FieldMappingConfig] = Field(default_factory=dict)
     processing: ExcelToPDFProcessingConfig = Field(default_factory=ExcelToPDFProcessingConfig)
 
 

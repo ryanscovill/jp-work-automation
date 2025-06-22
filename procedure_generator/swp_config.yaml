@@ -243,15 +243,24 @@ NOP:
 
 # Excel to PDF conversion configuration
 EXCEL_TO_PDF:
-  # Mapping from Excel column names to PDF field names
-  # Format: "Excel Column Name": "PDF Field Name"
+  # Mapping from Excel names to PDF field names with field types
+  # Format: Excel name with pdf_field and type properties
   field_mappings:
-    "Name": "FullName"
-    "Address": "StreetAddress"
-    "Phone": "PhoneNumber"
-    "Province": "Region"
-    "Job Title": "JobTitle"
-    "Department": "Dept"
+    Name:
+      pdf_field: FullName
+    Address:
+      pdf_field: StreetAddress
+    Phone:
+      pdf_field: PhoneNumber
+    Province:
+      pdf_field: Region
+    Job Title:
+      pdf_field: JobTitle
+    Department:
+      pdf_field: Dept
+    Asbestos:
+      pdf_field: Asbestos Check
+      type: checkbox
   
   # Configuration for Excel file processing
   processing:
