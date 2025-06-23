@@ -1,7 +1,7 @@
+import argparse
+from typing import Optional
 import pandas as pd
 from fillpdf import fillpdfs
-from typing import Optional
-import argparse
 from ..config_loader import config
 
 def excel_pdf(excel_file: str, pdf_template: str, output_pdf: str):
