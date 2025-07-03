@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FileUpload } from '@/components/shared/FileUpload';
-import { ProgressTracker } from '@/components/shared/ProgressTracker';
+import { TabTemplate } from '@/components/shared/TabTemplate';
 import { apiClient } from '@/lib/api';
 
 export function UpdateMasterTab() {
@@ -45,15 +43,6 @@ export function UpdateMasterTab() {
     }
   };
 
-  const handleComplete = () => {
-    setIsProcessing(false);
-  };
-
-  const handleError = (errorMessage: string) => {
-    setIsProcessing(false);
-    setError(errorMessage);
-  };
-
   const resetForm = () => {
     setSourcePdf(null);
     setTemplateFolder('');
@@ -63,108 +52,85 @@ export function UpdateMasterTab() {
     setIsProcessing(false);
   };
 
+  const infoSection = (
+    <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+      <h4 className="text-sm font-medium text-yellow-800 mb-2">How it works:</h4>
+      <ul className="text-sm text-yellow-700 space-y-1">
+        <li>• Scans the template folder for available PDF templates</li>
+        <li>• Scans the work procedure folder for procedure documents</li>
+        <li>• Updates dropdown fields in the master PDF with found items</li>
+        <li>• Creates an updated master PDF with current options</li>
+      </ul>
+    </div>
+  );
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Update Master PDF</CardTitle>
-        <CardDescription>
-          Update dropdown menu options within a master PDF template with new templates and work procedures
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="master-pdf">Master PDF</Label>
-          <FileUpload
-            accept=".pdf"
-            onFileSelect={handleSourcePdfSelect}
-            disabled={isProcessing}
-          >
-            {sourcePdf ? (
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-green-600">
-                  ✓ {sourcePdf.name}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Click to change or drag new file
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Select Master PDF</p>
-                <p className="text-xs text-muted-foreground">
-                  The master PDF template to update
-                </p>
-              </div>
-            )}
-          </FileUpload>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="template-folder-master">Template Folder</Label>
-            <Input
-              id="template-folder-master"
-              type="text"
-              placeholder="/path/to/templates"
-              value={templateFolder}
-              onChange={(e) => setTemplateFolder(e.target.value)}
-              disabled={isProcessing}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="work-procedure-folder-master">Work Procedure Folder</Label>
-            <Input
-              id="work-procedure-folder-master"
-              type="text"
-              placeholder="/path/to/work/procedures"
-              value={workProcedureFolder}
-              onChange={(e) => setWorkProcedureFolder(e.target.value)}
-              disabled={isProcessing}
-            />
-          </div>
-        </div>
-
-        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
-          <h4 className="text-sm font-medium text-yellow-800 mb-2">How it works:</h4>
-          <ul className="text-sm text-yellow-700 space-y-1">
-            <li>• Scans the template folder for available PDF templates</li>
-            <li>• Scans the work procedure folder for procedure documents</li>
-            <li>• Updates dropdown fields in the master PDF with found items</li>
-            <li>• Creates an updated master PDF with current options</li>
-          </ul>
-        </div>
-
-        <div className="flex gap-2">
-          <Button
-            onClick={handleSubmit}
-            disabled={!sourcePdf || !templateFolder || !workProcedureFolder || isProcessing}
-            className="w-auto"
-          >
-            {isProcessing ? 'Updating...' : 'Update Master PDF'}
-          </Button>
-          
-          {(sourcePdf || templateFolder || workProcedureFolder || error) && (
-            <Button variant="outline" onClick={resetForm} disabled={isProcessing}>
-              Reset
-            </Button>
+    <TabTemplate
+      title="Update Master"
+      description="Update master PDF with current templates and work procedures from specified folders"
+      onSubmit={handleSubmit}
+      onReset={resetForm}
+      submitButtonText="Update Master PDF"
+      processingText="Updating..."
+      isSubmitDisabled={!sourcePdf || !templateFolder || !workProcedureFolder}
+      shouldShowReset={!!(sourcePdf || templateFolder || workProcedureFolder || error)}
+      isProcessing={isProcessing}
+      currentTaskId={currentTaskId}
+      error={error}
+      infoSection={infoSection}
+    >
+      <div className="space-y-2">
+        <Label htmlFor="source-pdf">Master PDF File</Label>
+        <FileUpload
+          accept=".pdf"
+          onFileSelect={handleSourcePdfSelect}
+          disabled={isProcessing}
+        >
+          {sourcePdf ? (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-green-600">
+                ✓ {sourcePdf.name}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Click to change or drag new file
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Select Master PDF</p>
+              <p className="text-xs text-muted-foreground">
+                The master PDF to update
+              </p>
+            </div>
           )}
+        </FileUpload>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="template-folder">Template Folder</Label>
+          <Input
+            id="template-folder"
+            type="text"
+            placeholder="/path/to/templates"
+            value={templateFolder}
+            onChange={(e) => setTemplateFolder(e.target.value)}
+            disabled={isProcessing}
+          />
         </div>
 
-        {currentTaskId && (
-          <ProgressTracker
-            taskId={currentTaskId}
-            onComplete={handleComplete}
-            onError={handleError}
+        <div className="space-y-2">
+          <Label htmlFor="work-procedure-folder">Work Procedure Folder</Label>
+          <Input
+            id="work-procedure-folder"
+            type="text"
+            placeholder="/path/to/work/procedures"
+            value={workProcedureFolder}
+            onChange={(e) => setWorkProcedureFolder(e.target.value)}
+            disabled={isProcessing}
           />
-        )}
-
-        {error && !currentTaskId && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm text-red-600">{error}</p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+        </div>
+      </div>
+    </TabTemplate>
   );
 }
