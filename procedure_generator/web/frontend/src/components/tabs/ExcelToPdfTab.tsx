@@ -48,15 +48,8 @@ export function ExcelToPdfTab() {
     }
   };
 
-  const handleComplete = async () => {
+  const handleComplete = () => {
     setIsProcessing(false);
-    if (currentTaskId) {
-      try {
-        await apiClient.downloadFile(currentTaskId);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Download failed');
-      }
-    }
   };
 
   const handleError = (errorMessage: string) => {
@@ -137,20 +130,6 @@ export function ExcelToPdfTab() {
           </div>
         </div>
 
-        {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm text-red-600">{error}</p>
-          </div>
-        )}
-
-        {currentTaskId && (
-          <ProgressTracker
-            taskId={currentTaskId}
-            onComplete={handleComplete}
-            onError={handleError}
-          />
-        )}
-
         <div className="flex gap-2">
           <Button
             onClick={handleSubmit}
@@ -166,6 +145,20 @@ export function ExcelToPdfTab() {
             </Button>
           )}
         </div>
+
+        {currentTaskId && (
+          <ProgressTracker
+            taskId={currentTaskId}
+            onComplete={handleComplete}
+            onError={handleError}
+          />
+        )}
+
+        {error && !currentTaskId && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

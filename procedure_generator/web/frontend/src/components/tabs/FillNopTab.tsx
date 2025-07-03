@@ -104,14 +104,6 @@ export function FillNopTab() {
           </div>
         )}
 
-        {currentTaskId && (
-          <ProgressTracker
-            taskId={currentTaskId}
-            onComplete={handleComplete}
-            onError={handleError}
-          />
-        )}
-
         <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
           <h4 className="text-sm font-medium text-blue-800 mb-2">Important Notes:</h4>
           <ul className="text-sm text-blue-700 space-y-1">
@@ -138,7 +130,15 @@ export function FillNopTab() {
           )}
         </div>
 
-        {error && (
+        {currentTaskId && (
+          <ProgressTracker
+            taskId={currentTaskId}
+            onComplete={handleComplete}
+            onError={handleError}
+          />
+        )}
+
+        {error && !currentTaskId && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-md">
             <p className="text-sm text-red-600">{error}</p>
           </div>

@@ -23,6 +23,13 @@ export function ProgressTracker({ taskId, onComplete, onError }: ProgressTracker
 
         if (taskStatus.status === 'completed') {
           clearInterval(pollInterval);
+          // Auto-download the completed file
+          try {
+            await apiClient.downloadFile(taskId);
+          } catch (downloadError) {
+            onError?.(downloadError instanceof Error ? downloadError.message : 'Download failed');
+            return;
+          }
           onComplete?.(taskStatus.output_file);
         } else if (taskStatus.status === 'error') {
           clearInterval(pollInterval);
@@ -45,25 +52,29 @@ export function ProgressTracker({ taskId, onComplete, onError }: ProgressTracker
 
   return (
     <div className="space-y-2">
-      <div className="flex justify-between text-sm">
-        <span>
-          {status.status === 'processing' ? 'Processing...' : 
-           status.status === 'completed' ? 'Completed' : 
-           status.status === 'error' ? 'Error' : 'Unknown'}
-        </span>
-        <span>{status.progress}%</span>
-      </div>
-      <div className="w-full bg-muted rounded-full h-2">
-        <div 
-          className={`h-2 rounded-full transition-all ${
-            status.status === 'error' ? 'bg-destructive' : 
-            status.status === 'completed' ? 'bg-green-500' : 'bg-primary'
-          }`}
-          style={{ width: `${status.progress}%` }}
-        />
-      </div>
+      {status.status !== 'error' && (
+        <div className="flex justify-between text-sm">
+          <span>
+            {status.status === 'processing' ? 'Processing...' : 
+             status.status === 'completed' ? 'Completed' : 'Unknown'}
+          </span>
+          <span>{status.progress}%</span>
+        </div>
+      )}
+      {status.status !== 'error' && (
+        <div className="w-full bg-muted rounded-full h-2">
+          <div 
+            className={`h-2 rounded-full transition-all ${
+              status.status === 'completed' ? 'bg-green-500' : 'bg-primary'
+            }`}
+            style={{ width: `${status.progress}%` }}
+          />
+        </div>
+      )}
       {status.status === 'error' && status.error && (
-        <p className="text-sm text-destructive">{status.error}</p>
+        <div className="p-3 bg-red-50 border border-red-200 rounded-md mt-2">
+          <p className="text-sm text-red-600">{status.error}</p>
+        </div>
       )}
     </div>
   );

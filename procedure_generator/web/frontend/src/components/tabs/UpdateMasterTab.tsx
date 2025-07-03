@@ -45,15 +45,8 @@ export function UpdateMasterTab() {
     }
   };
 
-  const handleComplete = async () => {
+  const handleComplete = () => {
     setIsProcessing(false);
-    if (currentTaskId) {
-      try {
-        await apiClient.downloadFile(currentTaskId);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Download failed');
-      }
-    }
   };
 
   const handleError = (errorMessage: string) => {
@@ -132,20 +125,6 @@ export function UpdateMasterTab() {
           </div>
         </div>
 
-        {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm text-red-600">{error}</p>
-          </div>
-        )}
-
-        {currentTaskId && (
-          <ProgressTracker
-            taskId={currentTaskId}
-            onComplete={handleComplete}
-            onError={handleError}
-          />
-        )}
-
         <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
           <h4 className="text-sm font-medium text-yellow-800 mb-2">How it works:</h4>
           <ul className="text-sm text-yellow-700 space-y-1">
@@ -171,6 +150,20 @@ export function UpdateMasterTab() {
             </Button>
           )}
         </div>
+
+        {currentTaskId && (
+          <ProgressTracker
+            taskId={currentTaskId}
+            onComplete={handleComplete}
+            onError={handleError}
+          />
+        )}
+
+        {error && !currentTaskId && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
