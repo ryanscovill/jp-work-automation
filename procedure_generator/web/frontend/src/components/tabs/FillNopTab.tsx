@@ -96,12 +96,6 @@ export function FillNopTab() {
           </FileUpload>
         </div>
 
-        {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm text-red-600">{error}</p>
-          </div>
-        )}
-
         {success && (
           <div className="p-3 bg-green-50 border border-green-200 rounded-md">
             <p className="text-sm text-green-600">
@@ -132,7 +126,7 @@ export function FillNopTab() {
           <Button
             onClick={handleSubmit}
             disabled={!swpFile || isProcessing}
-            className="flex-1"
+            className="w-auto"
           >
             {isProcessing ? 'Filling Form...' : 'Fill NOP Form'}
           </Button>
@@ -143,6 +137,12 @@ export function FillNopTab() {
             </Button>
           )}
         </div>
+
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

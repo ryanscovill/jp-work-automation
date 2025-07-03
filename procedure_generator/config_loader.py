@@ -96,17 +96,23 @@ class Config(BaseSettings):
             raise FileNotFoundError("Failed to load configuration file 'swp_config.yaml'.")
 
     def _find_config_file(self, filename: str) -> Path | None:
-        """Find config file in executable directory or parent directory"""
-        exe_dir = Path(sys.argv[0]).resolve().parent
-        config_path = exe_dir / filename
+        """Find config file in various locations"""
+        search_paths = [
+            # Current working directory
+            Path.cwd() / "procedure_generator" / filename,
+            # Executable directory
+            Path(sys.argv[0]).resolve().parent / filename,
+            # Parent directory of executable
+            Path(sys.argv[0]).resolve().parent.parent / filename,
+            # Same directory as this config_loader.py file
+            Path(__file__).resolve().parent / filename,
+            # Current working directory
+            Path.cwd() / filename,
+        ]
         
-        if config_path.exists():
-            return config_path
-        
-        # Try parent directory
-        parent_config = exe_dir.parent / filename
-        if parent_config.exists():
-            return parent_config
+        for config_path in search_paths:
+            if config_path.exists():
+                return config_path
         
         return None
 

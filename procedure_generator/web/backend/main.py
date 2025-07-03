@@ -8,13 +8,15 @@ import uuid
 from typing import Optional
 from pathlib import Path
 import sys
+import asyncio
+import concurrent.futures
 
 # Add parent directories to path to import existing modules
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from swp.swp import generate_pdf, update_master
-from worksafe_nop.fill import fill_nop_from_pdf
-from excel_pdf.excel_pdf import excel_pdf
+from procedure_generator.swp.swp import generate_pdf, update_master
+from procedure_generator.worksafe_nop.fill import fill_nop_from_pdf
+from procedure_generator.excel_pdf.excel_pdf import excel_pdf
 
 app = FastAPI(
     title="Work Procedure PDF Generator API",
@@ -168,8 +170,11 @@ async def run_fill_nop_task(task_id: str, swp_file: str):
     try:
         task_status[task_id] = {"status": "processing", "progress": 0}
         
-        # Run the fill NOP function
-        fill_nop_from_pdf(swp_file)
+        # Run the fill NOP function in a thread pool to avoid asyncio loop conflict
+        # since fill_nop_from_pdf uses sync Playwright API
+        loop = asyncio.get_event_loop()
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            await loop.run_in_executor(executor, fill_nop_from_pdf, swp_file)
         
         task_status[task_id] = {"status": "completed", "progress": 100}
     except Exception as e:

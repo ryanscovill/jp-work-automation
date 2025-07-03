@@ -155,7 +155,7 @@ export function ExcelToPdfTab() {
           <Button
             onClick={handleSubmit}
             disabled={!excelFile || !pdfTemplate || isProcessing}
-            className="flex-1"
+            className="w-auto"
           >
             {isProcessing ? 'Processing...' : 'Generate PDF'}
           </Button>

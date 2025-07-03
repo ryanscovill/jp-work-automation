@@ -1,4 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Toaster } from "@/components/ui/sonner"
 import { ExcelToPdfTab } from "@/components/tabs/ExcelToPdfTab"
 import { GenerateSwpTab } from "@/components/tabs/GenerateSwpTab"
 import { FillNopTab } from "@/components/tabs/FillNopTab"
@@ -40,6 +41,7 @@ function App() {
           </TabsContent>
         </Tabs>
       </div>
+      <Toaster />
     </div>
   )
 }

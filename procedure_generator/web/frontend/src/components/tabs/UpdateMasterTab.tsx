@@ -160,7 +160,7 @@ export function UpdateMasterTab() {
           <Button
             onClick={handleSubmit}
             disabled={!sourcePdf || !templateFolder || !workProcedureFolder || isProcessing}
-            className="flex-1"
+            className="w-auto"
           >
             {isProcessing ? 'Updating...' : 'Update Master PDF'}
           </Button>
