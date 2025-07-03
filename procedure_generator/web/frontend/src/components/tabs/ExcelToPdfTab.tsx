@@ -46,6 +46,11 @@ export function ExcelToPdfTab() {
     }
   };
 
+  const handleError = (errorMessage: string) => {
+    setIsProcessing(false);
+    setError(errorMessage);
+  };
+
   const resetForm = () => {
     setExcelFile(null);
     setPdfTemplate(null);
@@ -60,6 +65,7 @@ export function ExcelToPdfTab() {
       description="Fill PDF form templates using data from Excel files with field mapping"
       onSubmit={handleSubmit}
       onReset={resetForm}
+      onError={handleError}
       submitButtonText="Generate PDF"
       processingText="Processing..."
       isSubmitDisabled={!excelFile || !pdfTemplate}

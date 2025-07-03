@@ -77,6 +77,7 @@ export function FillNopTab() {
       description="Automate filling of NOP (Notice of Project) forms on the WorkSafeBC website using browser automation"
       onSubmit={handleSubmit}
       onReset={resetForm}
+      onError={handleError}
       submitButtonText="Fill NOP Form"
       processingText="Filling Form..."
       isSubmitDisabled={!swpFile}

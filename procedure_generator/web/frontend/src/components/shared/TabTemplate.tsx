@@ -10,6 +10,7 @@ interface TabTemplateProps {
   infoSection?: ReactNode;
   onSubmit: () => Promise<void>;
   onReset: () => void;
+  onError?: (errorMessage: string) => void;
   submitButtonText: string;
   processingText: string;
   isSubmitDisabled: boolean;
@@ -28,6 +29,7 @@ export function TabTemplate({
   infoSection,
   onSubmit,
   onReset,
+  onError,
   submitButtonText,
   processingText,
   isSubmitDisabled,
@@ -49,12 +51,21 @@ export function TabTemplate({
     }
   };
 
+  const handleReset = () => {
+    setIsSubmitting(false); // Reset the submitting state
+    onReset();
+  };
+
   const handleComplete = () => {
     setIsSubmitting(false);
   };
 
   const handleError = (errorMessage: string) => {
     setIsSubmitting(false);
+    // Call parent error handler if provided
+    if (onError) {
+      onError(errorMessage);
+    }
   };
 
   return (
@@ -78,6 +89,7 @@ export function TabTemplate({
 
         <div className="flex gap-2">
           <Button
+            variant="primary"
             onClick={handleSubmit}
             disabled={isSubmitDisabled || isProcessing || isSubmitting}
             className="w-auto"
@@ -86,7 +98,7 @@ export function TabTemplate({
           </Button>
           
           {shouldShowReset && (
-            <Button variant="outline" onClick={onReset} disabled={isProcessing || isSubmitting}>
+            <Button variant="outline" onClick={handleReset} disabled={isProcessing || isSubmitting}>
               Reset
             </Button>
           )}

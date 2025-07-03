@@ -46,6 +46,8 @@ export function FileUpload({
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     validateAndSelectFiles(files);
+    // Clear the input value to allow selecting the same file again
+    e.target.value = '';
   };
 
   const validateAndSelectFiles = (files: File[]) => {

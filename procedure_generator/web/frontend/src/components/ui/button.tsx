@@ -5,19 +5,20 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer border border-border",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer border border-border",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/70",
+        default: "bg-primary text-primary-foreground hover:bg-gray-200 disabled:hover:bg-primary active:bg-blue-700",
+        primary: "bg-blue-600 text-white hover:bg-blue-700 disabled:hover:bg-blue-600 active:bg-blue-800 shadow-lg hover:shadow-xl transition-shadow font-semibold",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/70",
+          "bg-destructive text-destructive-foreground hover:bg-red-600 disabled:hover:bg-destructive active:bg-red-700",
         outline:
-          "border border-input bg-background hover:bg-slate-100 hover:text-slate-900",
+          "border border-input bg-background hover:bg-gray-100 hover:text-gray-900 disabled:hover:bg-background disabled:hover:text-foreground active:bg-gray-200",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/60",
-        ghost: "hover:bg-slate-100 hover:text-slate-900",
-        link: "text-primary underline-offset-4 hover:underline hover:text-primary/70",
+          "bg-secondary text-secondary-foreground hover:bg-gray-200 disabled:hover:bg-secondary active:bg-gray-300",
+        ghost: "hover:bg-gray-100 hover:text-gray-900 disabled:hover:bg-transparent active:bg-gray-200",
+        link: "text-primary underline-offset-4 hover:underline hover:text-blue-600 disabled:hover:text-primary disabled:hover:no-underline active:text-blue-700",
       },
       size: {
         default: "h-10 px-4 py-2",

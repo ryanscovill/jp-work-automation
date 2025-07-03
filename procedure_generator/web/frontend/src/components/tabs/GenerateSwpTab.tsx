@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FileUpload } from '@/components/shared/FileUpload';
 import { TabTemplate } from '@/components/shared/TabTemplate';
@@ -7,8 +6,6 @@ import { apiClient } from '@/lib/api';
 
 export function GenerateSwpTab() {
   const [sourcePdf, setSourcePdf] = useState<File | null>(null);
-  const [templateFolder, setTemplateFolder] = useState('');
-  const [workProcedureFolder, setWorkProcedureFolder] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -21,8 +18,8 @@ export function GenerateSwpTab() {
   };
 
   const handleSubmit = async () => {
-    if (!sourcePdf || !templateFolder || !workProcedureFolder) {
-      setError('Please provide all required fields');
+    if (!sourcePdf) {
+      setError('Please select a source PDF file');
       return;
     }
 
@@ -32,8 +29,8 @@ export function GenerateSwpTab() {
       
       const response = await apiClient.generateSwp({
         source_pdf: sourcePdf,
-        template_folder: templateFolder,
-        work_procedure_folder: workProcedureFolder,
+        template_folder: '',
+        work_procedure_folder: '',
       });
       
       setCurrentTaskId(response.task_id);
@@ -43,10 +40,13 @@ export function GenerateSwpTab() {
     }
   };
 
+  const handleError = (errorMessage: string) => {
+    setIsProcessing(false);
+    setError(errorMessage);
+  };
+
   const resetForm = () => {
     setSourcePdf(null);
-    setTemplateFolder('');
-    setWorkProcedureFolder('');
     setCurrentTaskId(null);
     setError(null);
     setIsProcessing(false);
@@ -58,10 +58,11 @@ export function GenerateSwpTab() {
       description="Create a Safe Work Procedure (SWP) PDF from a source PDF and template folders"
       onSubmit={handleSubmit}
       onReset={resetForm}
+      onError={handleError}
       submitButtonText="Generate SWP"
       processingText="Generating..."
-      isSubmitDisabled={!sourcePdf || !templateFolder || !workProcedureFolder}
-      shouldShowReset={!!(sourcePdf || templateFolder || workProcedureFolder || error)}
+      isSubmitDisabled={!sourcePdf}
+      shouldShowReset={!!(sourcePdf || error)}
       isProcessing={isProcessing}
       currentTaskId={currentTaskId}
       error={error}
@@ -91,32 +92,6 @@ export function GenerateSwpTab() {
             </div>
           )}
         </FileUpload>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="template-folder">Template Folder</Label>
-          <Input
-            id="template-folder"
-            type="text"
-            placeholder="/path/to/templates"
-            value={templateFolder}
-            onChange={(e) => setTemplateFolder(e.target.value)}
-            disabled={isProcessing}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="work-procedure-folder">Work Procedure Folder</Label>
-          <Input
-            id="work-procedure-folder"
-            type="text"
-            placeholder="/path/to/work/procedures"
-            value={workProcedureFolder}
-            onChange={(e) => setWorkProcedureFolder(e.target.value)}
-            disabled={isProcessing}
-          />
-        </div>
       </div>
     </TabTemplate>
   );

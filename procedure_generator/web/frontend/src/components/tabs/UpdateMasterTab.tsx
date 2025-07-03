@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FileUpload } from '@/components/shared/FileUpload';
 import { TabTemplate } from '@/components/shared/TabTemplate';
@@ -7,8 +6,6 @@ import { apiClient } from '@/lib/api';
 
 export function UpdateMasterTab() {
   const [sourcePdf, setSourcePdf] = useState<File | null>(null);
-  const [templateFolder, setTemplateFolder] = useState('');
-  const [workProcedureFolder, setWorkProcedureFolder] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -21,8 +18,8 @@ export function UpdateMasterTab() {
   };
 
   const handleSubmit = async () => {
-    if (!sourcePdf || !templateFolder || !workProcedureFolder) {
-      setError('Please provide all required fields');
+    if (!sourcePdf) {
+      setError('Please select a master PDF file');
       return;
     }
 
@@ -32,8 +29,8 @@ export function UpdateMasterTab() {
       
       const response = await apiClient.updateMaster({
         source_pdf: sourcePdf,
-        template_folder: templateFolder,
-        work_procedure_folder: workProcedureFolder,
+        template_folder: '',
+        work_procedure_folder: '',
       });
       
       setCurrentTaskId(response.task_id);
@@ -43,10 +40,13 @@ export function UpdateMasterTab() {
     }
   };
 
+  const handleError = (errorMessage: string) => {
+    setIsProcessing(false);
+    setError(errorMessage);
+  };
+
   const resetForm = () => {
     setSourcePdf(null);
-    setTemplateFolder('');
-    setWorkProcedureFolder('');
     setCurrentTaskId(null);
     setError(null);
     setIsProcessing(false);
@@ -70,10 +70,11 @@ export function UpdateMasterTab() {
       description="Update master PDF with current templates and work procedures from specified folders"
       onSubmit={handleSubmit}
       onReset={resetForm}
+      onError={handleError}
       submitButtonText="Update Master PDF"
       processingText="Updating..."
-      isSubmitDisabled={!sourcePdf || !templateFolder || !workProcedureFolder}
-      shouldShowReset={!!(sourcePdf || templateFolder || workProcedureFolder || error)}
+      isSubmitDisabled={!sourcePdf}
+      shouldShowReset={!!(sourcePdf || error)}
       isProcessing={isProcessing}
       currentTaskId={currentTaskId}
       error={error}
@@ -104,32 +105,6 @@ export function UpdateMasterTab() {
             </div>
           )}
         </FileUpload>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="template-folder">Template Folder</Label>
-          <Input
-            id="template-folder"
-            type="text"
-            placeholder="/path/to/templates"
-            value={templateFolder}
-            onChange={(e) => setTemplateFolder(e.target.value)}
-            disabled={isProcessing}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="work-procedure-folder">Work Procedure Folder</Label>
-          <Input
-            id="work-procedure-folder"
-            type="text"
-            placeholder="/path/to/work/procedures"
-            value={workProcedureFolder}
-            onChange={(e) => setWorkProcedureFolder(e.target.value)}
-            disabled={isProcessing}
-          />
-        </div>
       </div>
     </TabTemplate>
   );
