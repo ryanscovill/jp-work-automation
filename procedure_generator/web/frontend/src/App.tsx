@@ -1,11 +1,15 @@
+import { Routes, Route, Link } from "react-router-dom"
+import { Settings } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Toaster } from "@/components/ui/sonner"
 import { ExcelToPdfTab } from "@/components/tabs/ExcelToPdfTab"
 import { GenerateSwpTab } from "@/components/tabs/GenerateSwpTab"
 import { FillNopTab } from "@/components/tabs/FillNopTab"
 import { UpdateMasterTab } from "@/components/tabs/UpdateMasterTab"
+import { SettingsPage } from "@/components/pages/SettingsPage"
 
-function App() {
+function MainPage() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto">
@@ -41,8 +45,32 @@ function App() {
           </TabsContent>
         </Tabs>
       </div>
+      
+      {/* Settings Icon - Fixed position bottom left */}
+      <div className="fixed bottom-6 left-6">
+        <Button 
+          asChild 
+          variant="outline" 
+          size="icon"
+          className="rounded-full shadow-lg hover:shadow-xl transition-shadow"
+        >
+          <Link to="/settings">
+            <Settings className="h-5 w-5" />
+          </Link>
+        </Button>
+      </div>
+      
       <Toaster />
     </div>
+  )
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<MainPage />} />
+      <Route path="/settings" element={<SettingsPage />} />
+    </Routes>
   )
 }
 
