@@ -43,11 +43,12 @@ class UISettingsConfig(BaseModel):
     viewport_height: int = 900
 
 
-class WorksafeBCConfig(BaseModel):
-    url: str = "https://prevnop.online.worksafebc.com/"
+class NOPConfigSection(BaseModel):
+    worksafe_bc_url: str = "https://prevnop.online.worksafebc.com/"
 
 
 class NOPConfig(BaseModel):
+    config: NOPConfigSection = Field(default_factory=NOPConfigSection)
     transformations: Dict[str, Any] = Field(default_factory=dict)
     pages: List[Dict[str, Any]] = Field(default_factory=list)
 
@@ -74,7 +75,6 @@ class Config(BaseSettings):
     field_names: FieldNamesConfig = Field(default_factory=FieldNamesConfig)
     timeouts: TimeoutsConfig = Field(default_factory=TimeoutsConfig)
     ui_settings: UISettingsConfig = Field(default_factory=UISettingsConfig)
-    worksafe_bc: WorksafeBCConfig = Field(default_factory=WorksafeBCConfig)
     nop: NOPConfig = Field(default_factory=NOPConfig, alias="NOP")
     excel_to_pdf: ExcelToPDFConfig = Field(default_factory=ExcelToPDFConfig, alias="EXCEL_TO_PDF")
 
@@ -91,9 +91,45 @@ class Config(BaseSettings):
         
         try:
             with open(config_file, "r", encoding="utf-8") as file:
-                return yaml.safe_load(file) or {}
+                raw_config = yaml.safe_load(file) or {}
+                return self._normalize_hidden_keys(raw_config)
         except (FileNotFoundError, yaml.YAMLError):
             raise FileNotFoundError("Failed to load configuration file 'swp_config.yaml'.")
+
+    def _normalize_hidden_keys(self, config_dict: Dict[str, Any]) -> Dict[str, Any]:
+        """Remove __HIDDEN suffix from keys to normalize for application use"""
+        normalized = {}
+        for key, value in config_dict.items():
+            # Remove __HIDDEN suffix if present
+            normalized_key = key.replace('__HIDDEN', '') if key.endswith('__HIDDEN') else key
+            
+            # Recursively normalize nested dictionaries
+            if isinstance(value, dict):
+                normalized[normalized_key] = self._normalize_hidden_keys(value)
+            else:
+                normalized[normalized_key] = value
+                
+        return normalized
+
+    def reload(self) -> None:
+        """Reload configuration from YAML file"""
+        try:
+            config_data = self._load_yaml_config()
+            
+            # Update all fields with new data
+            for key, value in config_data.items():
+                if hasattr(self, key):
+                    # Use the field's type to properly reconstruct the object
+                    field_info = self.model_fields.get(key)
+                    if field_info and field_info.annotation:
+                        # Reconstruct the field with the new data
+                        setattr(self, key, field_info.annotation(**value) if isinstance(value, dict) else value)
+                    else:
+                        setattr(self, key, value)
+                        
+        except Exception as e:
+            print(f"Error reloading configuration: {e}")
+            raise
 
     def _find_config_file(self, filename: str) -> Path | None:
         """Find config file in various locations"""

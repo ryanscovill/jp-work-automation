@@ -5,16 +5,20 @@ from fastapi.staticfiles import StaticFiles
 import os
 import tempfile
 import uuid
-from typing import Optional
+from typing import Optional, Dict, Any
 from pathlib import Path
 import sys
 import asyncio
 import concurrent.futures
+from ruamel.yaml import YAML
+import re
+from pydantic import BaseModel
 
 # Add parent directories to path to import existing modules
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from procedure_generator.swp.swp import generate_pdf, update_master
+from procedure_generator.config_loader import config
 from procedure_generator.worksafe_nop.fill import fill_nop_from_pdf
 from procedure_generator.excel_pdf.excel_pdf import excel_pdf
 
@@ -37,6 +41,110 @@ app.add_middleware(
 temp_files = {}
 task_status = {}
 
+# Configuration file path
+CONFIG_PATH = Path(__file__).parent.parent.parent / "swp_config.yaml"
+
+class ConfigUpdate(BaseModel):
+    """Model for configuration update requests"""
+    config: Dict[str, Any]
+
+# YAML handler with comment preservation
+yaml_handler = YAML()
+yaml_handler.preserve_quotes = True
+yaml_handler.map_indent = 2
+yaml_handler.sequence_indent = 2
+
+def parse_yaml_comments(file_path: Path) -> Dict[str, str]:
+    """Parse YAML file and extract comments for each field path"""
+    comments = {}
+    
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            lines = file.readlines()
+        
+        current_path = []
+        pending_comment = None
+        
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+            
+            # Skip empty lines
+            if not stripped:
+                continue
+                
+            # Check if this line is a comment only
+            if stripped.startswith('#'):
+                # Store comment for next non-comment line
+                comment_text = stripped[1:].strip()
+                # Skip general header comments
+                if not any(word in comment_text.lower() for word in ['configuration', 'file contains', 'settings']):
+                    pending_comment = comment_text
+                continue
+                
+            # Extract inline comment from line
+            inline_comment_match = re.search(r'#\s*(.+)$', line)
+            inline_comment = inline_comment_match.group(1).strip() if inline_comment_match else None
+            
+            # Parse YAML structure to build path
+            if ':' in line and not stripped.startswith('-'):
+                # Get indentation level
+                indent_level = (len(line) - len(line.lstrip())) // 2
+                
+                # Extract key (remove any inline comments first)
+                key_part = line.split('#')[0] if '#' in line else line
+                key = key_part.split(':')[0].strip().strip('"\'')
+                
+                # Adjust current path based on indentation
+                current_path = current_path[:indent_level] + [key]
+                path_str = '.'.join(current_path)
+                
+                # Store comment (prefer inline comment, then pending comment)
+                comment_to_store = inline_comment or pending_comment
+                if comment_to_store:
+                    comments[path_str] = comment_to_store
+                    pending_comment = None  # Clear pending comment after use
+                    
+    except Exception as e:
+        print(f"Error parsing comments: {e}")
+    
+    return comments
+
+def update_yaml_preserving_structure(file_path: Path, new_data: Dict[str, Any]) -> None:
+    """Update YAML file while preserving comments and structure"""
+    # Read the current file with ruamel.yaml
+    with open(file_path, 'r', encoding='utf-8') as file:
+        yaml_data = yaml_handler.load(file)
+    
+    # Update the data while preserving the original structure
+    def update_recursive(original, new, path=""):
+        if isinstance(new, dict) and isinstance(original, dict):
+            for key, value in new.items():
+                if key in original:
+                    if isinstance(value, dict) and isinstance(original[key], dict):
+                        # Special handling for field_mappings - complete replacement
+                        if key == "field_mappings":
+                            original[key] = value
+                        else:
+                            update_recursive(original[key], value, f"{path}.{key}" if path else key)
+                    elif isinstance(value, list) and isinstance(original[key], list):
+                        # Special handling for pages array - complete replacement
+                        if key == "pages":
+                            original[key] = value
+                        else:
+                            original[key] = value
+                    else:
+                        original[key] = value
+                else:
+                    original[key] = value
+        else:
+            return new
+    
+    update_recursive(yaml_data, new_data)
+    
+    # Write back to file preserving comments
+    with open(file_path, 'w', encoding='utf-8') as file:
+        yaml_handler.dump(yaml_data, file)
+
 # Serve static frontend files in production
 if Path("../frontend/dist").exists():
     app.mount("/static", StaticFiles(directory="../frontend/dist"), name="static")
@@ -50,6 +158,56 @@ async def root():
 async def health_check():
     """Health check for API"""
     return {"status": "healthy", "api_version": "1.0.0"}
+
+@app.get("/api/config")
+async def get_config():
+    """Get current configuration from swp_config.yaml with comments"""
+    try:
+        if not CONFIG_PATH.exists():
+            raise HTTPException(status_code=404, detail="Configuration file not found")
+        
+        # Load configuration data
+        with open(CONFIG_PATH, 'r', encoding='utf-8') as file:
+            config = yaml_handler.load(file)
+        
+        # Parse comments
+        comments = parse_yaml_comments(CONFIG_PATH)
+        
+        return {"config": config, "comments": comments}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error reading configuration: {str(e)}")
+
+@app.post("/api/config")
+async def update_config(config_update: ConfigUpdate):
+    """Update configuration file with new values while preserving comments"""
+    try:
+        if not CONFIG_PATH.exists():
+            raise HTTPException(status_code=404, detail="Configuration file not found")
+        
+        # Read the current YAML file to create backup
+        with open(CONFIG_PATH, 'r', encoding='utf-8') as file:
+            content = file.read()
+        
+        # Create a backup of the original file
+        backup_path = CONFIG_PATH.with_suffix('.yaml.backup')
+        with open(backup_path, 'w', encoding='utf-8') as backup_file:
+            backup_file.write(content)
+        
+        # Update the configuration while preserving comments
+        update_yaml_preserving_structure(CONFIG_PATH, config_update.config)
+        
+        # Reload the global config instance to reflect changes
+        try:
+            config.reload()
+        except Exception as reload_error:
+            print(f"Warning: Failed to reload config in memory: {reload_error}")
+            # Still return success since the file was updated
+        
+        return {"message": "Configuration updated successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating configuration: {str(e)}")
 
 def cleanup_temp_file(file_path: str):
     """Clean up temporary file after use"""

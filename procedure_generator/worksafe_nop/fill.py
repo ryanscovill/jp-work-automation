@@ -370,7 +370,7 @@ def fill_nop(data):
 
         try:
             # Open the website with the specified page
-            url = f"{config.worksafe_bc.url}{start_page}"
+            url = f"{config.nop.config.worksafe_bc_url}{start_page}"
             page.goto(url)
 
             # Monitor for navigation to other pages

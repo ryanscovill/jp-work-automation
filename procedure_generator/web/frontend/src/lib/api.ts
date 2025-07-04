@@ -1,4 +1,4 @@
-import type { TaskResponse, TaskStatus, ExcelToPdfRequest, GenerateSwpRequest, FillNopRequest, UpdateMasterRequest } from './types';
+import type { TaskResponse, TaskStatus, ExcelToPdfRequest, GenerateSwpRequest, FillNopRequest, UpdateMasterRequest, ConfigResponse, Configuration } from './types';
 
 const API_BASE = '/api';
 
@@ -92,6 +92,24 @@ class ApiClient {
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
   }
+
+  async getConfig(): Promise<ConfigResponse> {
+    return this.makeRequest('/config');
+  }
+
+  async updateConfig(config: Configuration): Promise<{ message: string }> {
+    return this.makeRequest('/config', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ config }),
+    });
+  }
 }
 
 export const apiClient = new ApiClient();
+
+// Export convenience functions for config management
+export const getConfig = () => apiClient.getConfig();
+export const updateConfig = (config: Configuration) => apiClient.updateConfig(config);

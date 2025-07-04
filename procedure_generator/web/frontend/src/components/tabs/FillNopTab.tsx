@@ -41,10 +41,10 @@ export function FillNopTab() {
     }
   };
 
-  const handleComplete = () => {
-    setIsProcessing(false);
-    setSuccess(true);
-  };
+  // const handleComplete = () => {
+  //   setIsProcessing(false);
+  //   setSuccess(true);
+  // };
 
   const handleError = (errorMessage: string) => {
     setIsProcessing(false);

@@ -34,3 +34,21 @@ export interface UpdateMasterRequest {
 export interface ApiError {
   detail: string;
 }
+
+// Legacy types removed - now using dynamic Configuration type
+
+// Flexible configuration type for dynamic UI generation
+export type ConfigValue = string | number | boolean | ConfigValue[] | { [key: string]: ConfigValue }
+
+export interface Configuration {
+  [key: string]: ConfigValue;
+}
+
+export interface ConfigResponse {
+  config: Configuration;
+  comments: Record<string, string>;
+}
+
+export interface ConfigUpdateRequest {
+  config: Configuration;
+}
